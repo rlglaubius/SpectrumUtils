@@ -238,4 +238,38 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
   return(dat)
 }
 
+dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
+  ## Read ART coverage values (numbers and/or percentages)
+  data.fmt = list(cast=as.numeric, offset=3, nrow=3, ncol=final.year - first.year + 1)
+  data.raw = extract.dp.tag(dp.raw, "<HAARTBySex MV>", data.fmt)
+
+  ## Read ART coverage units (0: number, 1: percent)
+  unit.fmt = list(cast=as.numeric, offset=3, nrow=3, ncol=final.year - first.year + 1)
+  unit.raw = extract.dp.tag(dp.raw, "<HAARTBySexPerNum MV>", unit.fmt)
+
+  ## Decode and annotate the data
+  num.raw = data.raw
+  num.raw[unit.raw==1] = NA
+  prc.raw = data.raw
+  prc.raw[unit.raw==0] = NA
+
+  dat = cbind(rep(strata.labels$sex.aug, 2),
+              rep(c("Number", "Percent"), each=3),
+              rbind(data.frame(num.raw),
+                    data.frame(prc.raw)))
+  names(dat) = c("Sex", "Unit", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Unit"), variable.name="Year", value.name="Value")
+    View(dat)
+    dat$Year = as.numeric(as.character(dat$Year))
+    dat = subset(dat, is.finite(Value)) # Prune "NA" values
+  }
+
+  ## Drop Male+Female values because these are calculated by Spectrum, and only
+  ## for years when inputs are entered as numbers
+  return(subset(dat, Sex != "Male+Female"))
+}
