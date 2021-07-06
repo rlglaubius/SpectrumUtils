@@ -238,6 +238,19 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
   return(dat)
 }
 
+#' Get Spectrum adult ART inputs
+#'
+#' Get input numbers or percentages of adults on ART entered into Spectrum by
+#' sex and year in long or wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
 dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
@@ -273,3 +286,56 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
   ## for years when inputs are entered as numbers
   return(subset(dat, Sex != "Male+Female"))
 }
+
+#' Get Spectrum ART by age inputs
+#'
+#' Get input numbers of people on ART entered into Spectrum by sex, age and year
+#' in long or wide format. These data may be entered by five-year age group, or
+#' in age groups specified for UNAIDS Global AIDS Monitoring. The latter
+#' stratifies ages 25+ into two age groups, 25-49 and 50+.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.art.by.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ## Check whether data are by 5-year (type=0) or GAM (type=1) age groups
+  type.fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  type.raw = extract.dp.tag(dp.raw, "<ARTByAgeInputType MV>", type.fmt)[1,1]
+
+  if (!(type.raw %in% c(0,1))) {
+    warning(sprintf("Unrecognized format '%s' for ART by age, GAM ages returned", type.raw))
+  }
+
+  if (type.raw == 0) {
+    nr = length(strata.labels$sex) * length(strata.labels$age.5yr)
+    data.fmt = list(cast=as.numeric, offset=3, nrow=nr, ncol=final.year - first.year + 1)
+    data.raw = extract.dp.tag(dp.raw, "<ARTByAge5YearAG MV>", data.fmt)
+    dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age.5yr)),
+                rep(strata.labels$age.5yr, length(strata.labels$sex)),
+                data.frame(data.raw))
+  } else {
+    nr = length(strata.labels$sex) * length(strata.labels$age.gam)
+    data.fmt = list(cast=as.numeric, offset=3, nrow=nr, ncol=final.year - first.year + 1)
+    data.raw = extract.dp.tag(dp.raw, "<ARTByAgeGAMAG MV>", data.fmt)
+    dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age.gam)),
+                rep(strata.labels$age.gam, length(strata.labels$sex)),
+                data.frame(data.raw))
+  }
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
