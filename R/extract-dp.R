@@ -141,3 +141,101 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
 
   return(dat)
 }
+
+#' Get Spectrum's calculated new HIV infections
+#'
+#' Get Spectrum's calculated new HIV infections by age, sex, and year in long or
+#' wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.incident.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=243, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<NewInfectionsBySingleAge MV>", fmt)
+  dat = cbind(rep(strata.labels$sex.aug, length(strata.labels$age)),
+              rep(strata.labels$age, each=length(strata.labels$sex.aug)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+#' Get Spectrum's calculated HIV-related deaths
+#'
+#' Get Spectrum's calculated HIV-related deaths by age, sex, and year in long or
+#' wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=162, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<AidsDeathsByAge MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age)),
+              rep(strata.labels$age, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+#' Get Spectrum's calculated HIV-unrelated deaths
+#'
+#' Get Spectrum's calculated HIV-unrelated deaths by age, sex, and year in long or
+#' wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=162, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<DeathsByAge MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age)),
+              rep(strata.labels$age, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+
