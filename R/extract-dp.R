@@ -250,6 +250,15 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame.
+#' @section Details:
+#'
+#'   Adult treatment data can be entered into Spectrum as numbers or
+#'   percentages. These units can vary from year to year. When
+#'   \code{direction="wide"}, the return value will include rows for numbers and
+#'   for percentages, with percentages missing in years where numbers were
+#'   entered or vice-versa. When \code{direction="long"}, the data frame will only
+#'   include rows for whichever unit was entered into Spectrum in any year.
+#'
 #' @export
 dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -273,18 +282,77 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
               rep(c("Number", "Percent"), each=3),
               rbind(data.frame(num.raw),
                     data.frame(prc.raw)))
-  names(dat) = c("Sex", "Unit", sprintf("%d", first.year:final.year))
+  colnames(dat) = c("Sex", "Unit", sprintf("%d", first.year:final.year))
 
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars=c("Sex", "Unit"), variable.name="Year", value.name="Value")
-    View(dat)
     dat$Year = as.numeric(as.character(dat$Year))
-    dat = subset(dat, is.finite(Value)) # Prune "NA" values
+    dat = subset(dat, is.finite(Value)) # Remove "NA" values
   }
 
   ## Drop Male+Female values because these are calculated by Spectrum, and only
   ## for years when inputs are entered as numbers
   return(subset(dat, Sex != "Male+Female"))
+}
+
+#' Get Spectrum child HIV treatment inputs
+#'
+#' Get input numbers or percentages of children on antiretroviral therapy (ART)
+#' or cotrimoxazole (CTX) prophylaxis entered into Spectrum by year and age in
+#' long or wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Child treatment data can be entered into Spectrum as numbers or percentages
+#'   for ages 0-14. Further, ART numbers can be entered by five-year age group
+#'   (0-4, 5-9, or 10-14) instead. These units and age resolutions can vary from
+#'   year to year. When \code{direction="wide"}, the return value will include
+#'   rows for numbers and for percentages, with percentages missing in years
+#'   where numbers were entered or vice-versa. When \code{direction="long"},
+#'   unused combinations of age group, treatment, and unit are removed before
+#'   returning.
+#'
+#' @export
+dp.inputs.child.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ## Read treatment coverage values (numbers and/or percentages)
+  data.fmt = list(cast=as.numeric, offset=2, nrow=5, ncol=final.year - first.year + 1)
+  data.raw = extract.dp.tag(dp.raw, "<ChildTreatInputs MV3>", data.fmt)
+
+  ## Read treatment coverage units (0: number, 1: percent)
+  unit.fmt = list(cast=as.numeric, offset=2, nrow=5, ncol=final.year - first.year + 1)
+  unit.raw = extract.dp.tag(dp.raw, "<ChildARTByAgeGroupPerNum MV2>", data.fmt)
+
+  ## Decode and annotate the data
+  data.raw[data.raw==dp_not_avail] = NA
+  num.raw = data.raw
+  num.raw[unit.raw==1] = NA
+  prc.raw = data.raw
+  prc.raw[unit.raw==0] = NA
+
+  dat = cbind(rep(c("0-14", "0-14", "0-4", "5-9", "10-14"), 2),
+              rep(c("CTX", "ART", "ART", "ART", "ART"), 2),
+              rep(c("Number", "Percent"), each=5),
+              rbind(data.frame(num.raw),
+                    data.frame(prc.raw)))
+  colnames(dat) = c("Age", "Treatment", "Unit", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Age", "Treatment", "Unit"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+    dat = subset(dat, is.finite(Value)) # Remove "NA" values
+  }
+
+  return(dat)
 }
 
 #' Get Spectrum ART by age inputs
