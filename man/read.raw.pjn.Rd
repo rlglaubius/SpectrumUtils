@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{read.raw.pjn}
 \alias{read.raw.pjn}
-\title{Load Spectrum projection parameters}
+\title{Read Spectrum projection parameters}
 \usage{
 read.raw.pjn(pjnz.file)
 }

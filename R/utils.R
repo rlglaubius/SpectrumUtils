@@ -23,18 +23,6 @@ read.module.data = function(pjnz.file, extension="DP") {
   return(mod.data)
 }
 
-#' Load Spectrum projection parameters
-#'
-#' Read Spectrum projection parameters as an unformatted table
-#' @param pjnz.file The Spectrum file to extract data from
-#' @return an unformatted table of projection data
-#' @examples
-#' dp.data = read.raw.pjn("Antarctica.PJNZ")
-#' @export
-read.raw.pjn = function(pjnz.file) {
-  return(read.module.data(pjnz.file, "PJN"))
-}
-
 #' Extract specific Spectrum data
 #'
 #' Read raw Spectrum data from a given module
@@ -83,5 +71,58 @@ extract.raw.tag = function(mod.raw, tag, fmt) {
   raw.data = unlist(mod.raw[row.bgn:row.end, col.bgn:col.end])
   return(matrix(fmt$cast(raw.data), nrow=fmt$nrow, ncol=fmt$ncol))
 }
+
+#' Read Spectrum projection parameters
+#'
+#' Read Spectrum projection parameters as an unformatted table
+#' @param pjnz.file The Spectrum file to extract data from
+#' @return an unformatted table of projection data
+#' @examples
+#' dp.data = read.raw.pjn("Antarctica.PJNZ")
+#' @export
+read.raw.pjn = function(pjnz.file) {
+  return(read.module.data(pjnz.file, "PJN"))
+}
+
+extract.pjn.tag = function(pjn.raw, tag, fmt) {
+  fmt$is.modvar = FALSE
+  return(extract.raw.tag(pjn.raw, tag, fmt))
+}
+
+#' Read Spectrum geographic metadata
+#'
+#' Extract the country ISO-3166 numeric code and subnational unit name and id
+#' number from Spectrum projection data
+#' @param pjn.raw Raw projection parameter data, as returned by
+#'   \code{read.raw.pjn()}
+#' @return A data frame with three elements:
+#'
+#'   \code{iso.code} ISO-3166 numeric country code
+#'
+#'   \code{snu.name} Subnational unit name. This is empty for national
+#'   projections
+#'
+#'   \code{snu.code} Subnational numeric code. This is 0 for national
+#'   projections
+#'
+#' @section Details:
+#'
+#'   Numeric subnational codes were assigned by Avenir Health for internal use
+#'   in Spectrum. Unlike national ISO-3166 codes, these subnational codes are
+#'   not governed by any international organization and may not match codes used
+#'   for similar purposes by other organizations.
+#'
+#' @export
+extract.geo.info = function(pjn.raw) {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  iso.raw = extract.pjn.tag(pjn.raw, "<Projection Parameters>", fmt)[1,1]
+
+  fmt = list(cast=as.character, offset=2, nrow=2, ncol=1)
+  snu.raw = extract.pjn.tag(pjn.raw, "<Projection Parameters - Subnational Region Name2>", fmt)
+
+  dat = data.frame(iso.code = iso.raw, snu.name = snu.raw[1,1], snu.code = as.numeric(snu.raw[2,1]))
+  return(dat)
+}
+
 
 
