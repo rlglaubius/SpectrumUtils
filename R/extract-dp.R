@@ -407,3 +407,102 @@ dp.inputs.art.by.age = function(dp.raw, direction="wide", first.year=NULL, final
   return(dat)
 }
 
+#' Get Spectrum input HIV incidence
+#'
+#' Get the input HIV incidence trend. This may pertain to either the 15-49 or
+#' 15+ adult age group.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  opt.fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  opt.val = extract.dp.tag(dp.raw, "<IncidenceOptions MV>", opt.fmt)[1,1]
+
+  age.fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  age.val = extract.dp.tag(dp.raw, "<EppAgeRange MV>", age.fmt)[1,1]
+
+  inc.fmt = list(cast=as.numeric, offset=2, nrow=6, ncol=final.year - first.year + 1)
+  inc.raw = extract.dp.tag(dp.raw, "<IncidenceByFit MV4>", inc.fmt)
+  colnames(inc.raw) = sprintf("%d", first.year:final.year)
+  inc.val = inc.raw[opt.val + 1,] # offset by +1 because options use 0-based while R uses 1-based indexing
+
+  ages = ifelse(age.val==80, "15+", sprintf("15-%d", age.val))
+  dat = cbind(Age=ages, as.data.frame(t(inc.val)))
+
+  if (direction=="long") {
+    dat = data.frame(Year=first.year:final.year, Age=ages, Value=inc.val)
+  }
+
+  return(dat)
+}
+
+#' Get Spectrum input HIV incidence rate ratios by sex
+#'
+#' Get the input ratio of female to male incidence.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<HIVSexRatio MV>", fmt)
+
+  if (direction=="long") {
+    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
+  } else {
+    colnames(raw) = sprintf("%d", first.year:final.year)
+    dat = data.frame(raw, check.names=FALSE)
+  }
+
+  return(dat)
+}
+
+#' Get Spectrum input HIV incidence rate ratios by age
+#'
+#' Get the input rate ratios of incidence by age relative to ages 25-29,
+#' stratified by sex.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  nr = length(strata.labels$sex) * length(strata.labels$age.5yr)
+  fmt = list(cast=as.numeric, offset=3, nrow=nr, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<DistOfHIV MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age.5yr)),
+              rep(strata.labels$age.5yr, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
