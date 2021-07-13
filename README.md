@@ -2,7 +2,7 @@
 Utilities for extracting inputs and estimates from Spectrum files
 
 ## Description
-[Spectrum](https://avenirhealth.org/software-spectrum.php) is a suite of policy models to support decision making around demographic and public health questions. The `SpectrumUtils` package is an R interface for reading data from Spectrum modules into R for analysis, visualization, and development. National Spectrum files produced for annual HIV estimates can be requested from UNAIDS [via this link](https://www.unaids.org/en/dataanalysis/datatools/spectrum-epp).
+[Spectrum](https://avenirhealth.org/software-spectrum.php) is a suite of policy models to support decision making around demographic and public health questions. The `SpectrumUtils` package is an R interface for reading data from Spectrum modules into R to support analysis, visualization, and external tool development. National Spectrum files produced for annual HIV estimates can be requested from [UNAIDS](https://www.unaids.org/en/dataanalysis/datatools/spectrum-epp).
 
 ## How to use this code
 This package is not currently listed in CRAN. If you have the `devtools` package installed, you can install `SpectrumUtils` in R via
@@ -30,14 +30,7 @@ If your file was prepared using Spectrum's AIDS Impact Module (AIM), you can ext
 > plhiv = dp.output.hivpop(dp.raw, direction="long")
 ```
 
-
-This repository includes two key entry point scripts, nhfitter.R and visualize-fit.R. Other code files provide supporting functionality required by these entry point scripts. To run the analysis, point your R session working directory at this repository, then run
-
-```
-> fit.model = TRUE
-> source("nhfitter.R")
-> save.image("fit-ws.RData") # optional
-```
+This accesses raw data from a .DP file that stores information for Spectrum's DemProj and AIM modules.
 
 We are actively adding support to access more contents of Spectrum files. To list the available functions in the package, please use
 
