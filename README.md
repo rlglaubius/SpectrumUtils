@@ -8,7 +8,7 @@ Utilities for extracting inputs and estimates from Spectrum files
 This package is not currently listed in CRAN. If you have the `devtools` package installed, you can install `SpectrumUtils` in R via
 
 ```
-> devtools::install_github(rlglaubius/SpectrumUtils)
+> devtools::install_github("rlglaubius/SpectrumUtils")
 ```
 
 Suppose you have a national Spectrum file for Zimbabwe, `Zimbabwe.PJNZ`. Once you have installed `SpectrumUtils`, you can extract geographic metadata for that file:
