@@ -30,7 +30,7 @@ read.module.data = function(pjnz.file, extension="DP") {
 #'   module-specific functions
 #' @param tag A module variable name
 #' @param fmt Format parameters. See "Details"
-#' @return an the variable data as a matrix.
+#' @return A matrix storing the module variable values.
 #'
 #' @section Details:
 #'

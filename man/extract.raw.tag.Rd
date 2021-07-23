@@ -15,7 +15,7 @@ module-specific functions}
 \item{fmt}{Format parameters. See "Details"}
 }
 \value{
-an the variable data as a matrix.
+A matrix storing the module variable values.
 }
 \description{
 Read raw Spectrum data from a given module
