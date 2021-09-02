@@ -37,6 +37,88 @@ dp.inputs.final.year = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<FinalYear MV2>", fmt)[1,1])
 }
 
+#' Get the initial distribution of newly-infected adults by CD4 cell count category
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return the initial CD4 category distribution for newly-infected adults
+#' @export
+dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.cd4.adult)
+  n.cd4 = length(strata.labels$cd4.adult)
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex, ncol=n.age * n.cd4)
+  raw = extract.dp.tag(dp.raw, "<AdultDistNewInfectionsCD4 MV>", fmt)
+  dat = cbind(rep(strata.labels$age.cd4.adult, each=n.cd4),
+              rep(strata.labels$cd4.adult, n.age),
+              data.frame(t(raw)))
+  colnames(dat) = c("Age", "CD4", "Male", "Female")
+  dat.long = reshape2::melt(dat, id.vars=c("Age", "CD4"), variable.name="Sex", value.name="Value")
+  dat.long$CD4 = factor(dat$CD4, levels=strata.labels$cd4.adult)
+  if (direction == "wide") {
+    dat = reshape2::dcast(dat.long, Sex+CD4~Age, value.var="Value")
+  } else {
+    dat = dat.long[,c("Sex", "Age", "CD4", "Value")]
+  }
+  return(dat)
+}
+
+#' Get the adult HIV disease progression rates
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return adult HIV disease progression rates
+#' @export
+dp.inputs.adult.cd4.progression = function(dp.raw, direction="wide") {
+  cd4.labels = head(strata.labels$cd4.adult, -1) # no progression rate for the lowest CD4 category
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.cd4.adult)
+  n.cd4 = length(cd4.labels)
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex, ncol=n.age * n.cd4)
+  raw = extract.dp.tag(dp.raw, "<AdultAnnRateProgressLowerCD4 MV>", fmt)
+  dat = cbind(rep(strata.labels$age.cd4.adult, each=n.cd4),
+              rep(cd4.labels, n.age),
+              data.frame(t(raw)))
+  colnames(dat) = c("Age", "CD4", "Male", "Female")
+  dat.long = reshape2::melt(dat, id.vars=c("Age", "CD4"), variable.name="Sex", value.name="Value")
+  dat.long$CD4 = factor(dat$CD4, levels=cd4.labels)
+  if (direction == "wide") {
+    dat = reshape2::dcast(dat.long, Sex+CD4~Age, value.var="Value")
+  } else {
+    dat = dat.long[,c("Sex", "Age", "CD4", "Value")]
+  }
+  return(dat)
+}
+
+#' Get HIV-related mortality rates among adults not on ART
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return adult HIV-related mortality rates off ART
+#' @export
+dp.inputs.adult.hiv.mortality.off.art = function(dp.raw, direction="wide") {
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.cd4.adult)
+  n.cd4 = length(strata.labels$cd4.adult)
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex, ncol=n.age * n.cd4)
+  raw = extract.dp.tag(dp.raw, "<AdultMortByCD4NoART MV>", fmt)
+  dat = cbind(rep(strata.labels$age.cd4.adult, each=n.cd4),
+              rep(strata.labels$cd4.adult, n.age),
+              data.frame(t(raw)))
+  colnames(dat) = c("Age", "CD4", "Male", "Female")
+  dat.long = reshape2::melt(dat, id.vars=c("Age", "CD4"), variable.name="Sex", value.name="Value")
+  dat.long$CD4 = factor(dat$CD4, levels=strata.labels$cd4.adult)
+  if (direction == "wide") {
+    dat = reshape2::dcast(dat.long, Sex+CD4~Age, value.var="Value")
+  } else {
+    dat = dat.long[,c("Sex", "Age", "CD4", "Value")]
+  }
+  return(dat)
+}
+
 #' Get Spectrum's calculated population
 #'
 #' Get Spectrum's calculated population by age, sex, and year in long or wide
