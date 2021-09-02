@@ -71,25 +71,24 @@ dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
 #' @return adult HIV disease progression rates
 #' @export
 dp.inputs.adult.cd4.progression = function(dp.raw, direction="wide") {
-  cd4.labels = head(strata.labels$cd4.adult, -1) # no progression rate for the lowest CD4 category
   n.sex = length(strata.labels$sex)
   n.age = length(strata.labels$age.cd4.adult)
-  n.cd4 = length(cd4.labels)
+  n.cd4 = length(strata.labels$cd4.adult)
 
   fmt = list(cast=as.numeric, offset=3, nrow=n.sex, ncol=n.age * n.cd4)
   raw = extract.dp.tag(dp.raw, "<AdultAnnRateProgressLowerCD4 MV>", fmt)
   dat = cbind(rep(strata.labels$age.cd4.adult, each=n.cd4),
-              rep(cd4.labels, n.age),
+              rep(strata.labels$cd4.adult, n.age),
               data.frame(t(raw)))
   colnames(dat) = c("Age", "CD4", "Male", "Female")
   dat.long = reshape2::melt(dat, id.vars=c("Age", "CD4"), variable.name="Sex", value.name="Value")
-  dat.long$CD4 = factor(dat$CD4, levels=cd4.labels)
+  dat.long$CD4 = factor(dat$CD4, levels=strata.labels$cd4.adult)
   if (direction == "wide") {
     dat = reshape2::dcast(dat.long, Sex+CD4~Age, value.var="Value")
   } else {
     dat = dat.long[,c("Sex", "Age", "CD4", "Value")]
   }
-  return(dat)
+  return(subset(dat, CD4 != "CD4<50")) # Progression rates for CD4<50 are not used
 }
 
 #' Get HIV-related mortality rates among adults not on ART
