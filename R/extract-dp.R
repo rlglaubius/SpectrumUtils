@@ -37,6 +37,33 @@ dp.inputs.final.year = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<FinalYear MV2>", fmt)[1,1])
 }
 
+#' Get the model used to estimate incidence in a Spectrum projection
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return The incidence model name as a factor (see "Details" below for factor levels)
+#' @section Details:
+#'
+#'   Spectrum can take HIV incidence from several different models as inputs:
+#'   \enumerate{
+#'   \item{Direct - manually entered incidence values by year}
+#'   \item{EPP - the Estimation and Projection Package}
+#'   \item{AEM - the AIDS Epidemic Model}
+#'   \item{CSAVR - the Case Surveillance and Vital Registration tool}
+#'   \item{Mortality - incidence calibrated to mortality data}
+#'   \item{ECDC - The European Centre for Disease Prevention and Control's HIV Modelling Tool}
+#'   }
+#'
+#'   \code{dp.inputs.incidence.model()} returns the name of the model used as a factor. Use
+#'   \code{dp.inputs.incidence()} to get the incidence trend itself.
+#'
+#' @export
+dp.inputs.incidence.model = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  opt = extract.dp.tag(dp.raw, "<IncidenceOptions MV>", fmt)[1,1]
+  return(factor(opt, levels=0:5, labels=strata.labels$incidence.model))
+}
+
 #' Get the initial distribution of newly-infected adults by CD4 cell count category
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
