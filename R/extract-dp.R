@@ -91,6 +91,99 @@ dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get new HIV diagnoses overall
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame of numbers of new diagnoses
+#' @export
+dp.inputs.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ## .DP stores two rows for this modvar, but only uses rows 1
+  fmt = list(cast=as.numeric, devoffset=2, nrow=2, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputNewDiagnoses MV>", fmt)
+  raw[raw==dp_not_avail] = NA
+
+  if (direction == "long") {
+    dat = cbind(Year=first.year:final.year, Value=raw[1,])
+  } else {
+    dat = data.frame(t(raw[1,]))
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  }
+
+  return(dat)
+}
+
+#' Get new HIV diagnoses by sex
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame of numbers of new diagnoses by sex
+#' @export
+dp.inputs.csavr.diagnoses.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex)
+
+  ## .DP stores four rows for this modvar, but only uses rows 1 (males) and 3
+  ## (females)
+  fmt = list(cast=as.numeric, offset=2, nrow=2 * n.sex, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputNewDiagnosesBySex MV>", fmt)
+  raw[raw==dp_not_avail] = NA
+  dat = cbind(strata.labels$sex,
+              data.frame(raw)[c(1,3),])
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars="Sex", variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get new HIV diagnoses by sex and age
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame of numbers of new diagnoses by age and sex
+#' @export
+dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.csavr)
+
+  fmt = list(cast=as.numeric, offset=2, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputNewDiagnosesBySexAge MV>", fmt)
+  raw[raw==dp_not_avail] = NA
+  dat = cbind(rep(strata.labels$sex, each=n.age),
+              rep(strata.labels$age.csavr, n.sex),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the adult HIV disease progression rates
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
