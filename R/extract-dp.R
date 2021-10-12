@@ -707,3 +707,22 @@ dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.ye
 
   return(dat)
 }
+
+#' Get numbers of adults on ART by month during 2020-2021
+#'
+#' Get the number of adults on ART during the COVID-19 pandemic of 2020-2021, stratified by sex.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @export
+dp.inputs.adult.art.monthly = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=4, ncol=length(strata.labels$month)+1)
+  raw = extract.dp.tag(dp.raw, "<AdultARTByMonth MV>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=2), rep(2020:2021, 2), data.frame(raw[,2:13]))
+  colnames(dat) = c("Sex", "Year", strata.labels$month)
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Year"), variable.name="Month", value.name="Value")
+  }
+  return(dat)
+}
