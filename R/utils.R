@@ -63,6 +63,10 @@ read.module.data = function(pjnz.file, extension="DP") {
 #' @export
 extract.raw.tag = function(mod.raw, tag, fmt) {
   ind.tag = dplyr::first(which(mod.raw$Tag == tag))
+  if (is.na(ind.tag)) {
+    return(NULL)
+  }
+
   row.bgn = ind.tag + fmt$offset
   row.end = row.bgn + fmt$nrow - 1
   col.bgn = which(colnames(mod.raw) == "Data")

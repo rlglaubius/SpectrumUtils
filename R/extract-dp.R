@@ -12,7 +12,11 @@ read.raw.dp = function(pjnz.file) {
 
 extract.dp.tag = function(dp.raw, tag, fmt) {
   fmt$is.modvar = TRUE
-  return(extract.raw.tag(dp.raw, tag, fmt))
+  val = extract.raw.tag(dp.raw, tag, fmt)
+  if (is.null(val)) {
+    val = matrix(NA, nrow=fmt$nrow, ncol=fmt$ncol)
+  }
+  return(val)
 }
 
 #' Get the first year of a Spectrum projection
