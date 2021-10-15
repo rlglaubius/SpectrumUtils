@@ -714,7 +714,7 @@ dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.ye
 
 #' Get numbers of adults on ART by month during 2020-2021
 #'
-#' Get the number of adults on ART during the COVID-19 pandemic of 2020-2021, stratified by sex.
+#' Get the number of adults on ART during 2020-2021, stratified by sex.
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
 #' @param direction Request "wide" (default) or "long" format data.
@@ -727,6 +727,25 @@ dp.inputs.adult.art.monthly = function(dp.raw, direction="wide") {
   colnames(dat) = c("Sex", "Year", strata.labels$month)
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars=c("Sex", "Year"), variable.name="Month", value.name="Value")
+  }
+  return(dat)
+}
+
+#' Get adult ART loss to follow-up inputs by month during 2020-2021
+#'
+#' Get the input monthly percentages of adults who were lost to ART follow-up during 2020-2021.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @export
+dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=2, ncol=length(strata.labels$month)+1)
+  raw = extract.dp.tag(dp.raw, "<AdultPercentLTFUByMonth MV>", fmt)
+  dat = cbind(2020:2021, data.frame(raw[,2:13]))
+  colnames(dat) = c("Year", strata.labels$month)
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Year"), variable.name="Month", value.name="Value")
   }
   return(dat)
 }
