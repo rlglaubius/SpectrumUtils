@@ -460,6 +460,32 @@ dp.inputs.adult.hiv.mortality.off.art = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get Spectrum's calculated number of births
+#'
+#' Get Spectrum's calculated number of births by year in long or wide format.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.births = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<Births MV>", fmt)
+  if (direction=="long") {
+    dat = data.frame(Year=first.year:final.year, Value=t(raw))
+  } else {
+    dat = raw
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  }
+  return(dat)
+}
+
 #' Get Spectrum's calculated population
 #'
 #' Get Spectrum's calculated population by age, sex, and year in long or wide
