@@ -180,6 +180,37 @@ dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=N
   return(dat)
 }
 
+#' Get input survival rates
+#'
+#' Get input survival rates (Sx) by age, sex, and year. This is expressed as
+#' the proportion of people alive and age x at the start of the year who are
+#' still alive at the end of that year
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.surv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  ages = c("Birth", strata.labels$age)
+  fmt = list(cast=as.numeric, offset=3, nrow=164, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<SurvRate MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(ages)),
+              rep(ages, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the external population inputs used to calculate population adjustments
 #'
 #' Spectrum users may enter externally-produced population targets by sex, age,
