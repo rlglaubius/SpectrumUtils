@@ -41,6 +41,224 @@ dp.inputs.final.year = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<FinalYear MV2>", fmt)[1,1])
 }
 
+#' Get the input total fertility rate
+#'
+#' Get the input total fertility rate (TFR).
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.tfr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<TFR MV>", fmt)
+  if (direction=="long") {
+    dat = data.frame(Year=first.year:final.year, Value=t(raw))
+  } else {
+    dat = raw
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  }
+  return(dat)
+}
+
+#' Get the input proportional age-specific fertility rates
+#'
+#' Get the input proportional age-specific fertility rates (PASFRs). These are
+#' specified as percentages between 0 and 100
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.pasfr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=7, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<ASFR MV>", fmt)
+  dat = cbind(Age=strata.labels$age.fert, data.frame(raw))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get overall numbers of net migrants
+#'
+#' Get input overall numbers of net migrants by sex and year.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.migr.rate = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=3, nrow=4, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<MigrRate MV2>", fmt)[c(2,4),] # non-standard layout
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get the age distribution of net migrants
+#'
+#' Get the age distribution of net migrants by sex and year. These are
+#' normalized to sum to 100; negative values indicate net flows of migrants that
+#' are in the opposite direction of overall net migration.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.migr.dist = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=3, nrow=length(strata.labels$sex)*length(strata.labels$age.5yr), ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<MigrAgeDist MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age.5yr)),
+              rep(strata.labels$age.5yr, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get the input sex ratio at birth
+#'
+#' Get the input sex ratio at birth (SRB). This is specified as the number of
+#' male births per 100 female births.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<SexBirthRatio MV>", fmt)
+  if (direction=="long") {
+    dat = data.frame(Year=first.year:final.year, Value=t(raw))
+  } else {
+    dat = raw
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  }
+  return(dat)
+}
+
+#' Get the external population inputs used to calculate population adjustments
+#'
+#' Spectrum users may enter externally-produced population targets by sex, age,
+#' and year that can be used to align Spectrum population outputs with a
+#' reference population projection. \code{dp.inputs.external.pop} returns those
+#' population targets in long or wide format.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Use of an external population file is optional and rare in Spectrum. Use
+#'   \code{dp.inputs.use.external.pop} to check whether to check whether an
+#'   external population was specified. Note that \code{dp.inputs.external.pop}
+#'   will return population sizes of 0 for all years, sexes and ages if no
+#'   external population was specified.
+#'
+#' @export
+dp.inputs.external.pop = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ages = c(strata.labels$age, "All Ages")
+
+  fmt = list(cast=as.numeric, offset=3, nrow=164, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<RegionalAdjustPopData MV2>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(ages)),
+              rep(ages, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+#' Check whether an external population was specified
+#'
+#' Spectrum users may enter externally-produced population targets by sex, age,
+#' and year that can be used to align Spectrum population outputs with a
+#' reference population projection. \code{dp.inputs.use.external.pop} indicates
+#' whether this mechanism was used.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored
+#' @return A list with two elements. Element \code{use.external.pop} is TRUE if
+#' an external population was used, FALSE otherwise. Element \code{final.year}
+#' specifies the final year of adjustments.
+#' @section Details:
+#'
+#'   Use of an external population file is optional and rare in Spectrum.
+#'   Projections that use this mechanism may specify that adjustments to match
+#'   external population targets are not done in every year, but only until a
+#'   specified final year. Use \code{dp.inputs.external.pop} to access the
+#'   external population sizes.
+#'
+#' @export
+dp.inputs.use.external.pop = function(dp.raw, direction="wide") {
+  rval = list()
+
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  raw = extract.dp.tag(dp.raw, "<RegionalAdjustPopCBState MV>", fmt)
+  rval$use.external.pop = (raw[1,1] == 1)
+
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  raw = extract.dp.tag(dp.raw, "<CustomPopStopRescalingYear MV>", fmt)
+  rval$final.year = raw[1,1]
+
+  return(rval)
+}
+
 #' Get the model used to estimate incidence in a Spectrum projection
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}

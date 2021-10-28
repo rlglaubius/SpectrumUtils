@@ -1,8 +1,9 @@
 
 strata.labels = list(
-  sex     = c("Male", "Female"),
-  sex.aug = c("Male+Female", "Male", "Female"),
-  age     = c(sprintf("%d", 0:79), "80+"),
+  sex      = c("Male", "Female"),
+  sex.aug  = c("Male+Female", "Male", "Female"),
+  age      = c(sprintf("%d", 0:79), "80+"),
+  age.fert = c(sprintf("%d-%d", seq(15,45,5), seq(19, 49, 5))),
   age.5yr = c(sprintf("%d-%d", seq(0, 75, 5), seq(4, 79, 5)), "80+"),
   age.gam = c("0-4", "5-9", "10-14", "15-19", "20-24", "25-49", "50+"),
   age.cd4.adult = c("15-24", "25-34", "35-44", "45+"),
