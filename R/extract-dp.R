@@ -686,6 +686,42 @@ dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final
   return(dat)
 }
 
+#' Get Spectrum's calculated HIV-related deaths among PLHIV on ART
+#'
+#' Get Spectrum's calculated HIV-related deaths among PLHIV onART by age, sex,
+#' and year in long or wide format
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.deaths.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex.aug)
+  n.age = length(strata.labels$age) + 1 # includes "all" row
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<AIDSDeathsARTSingleAge MV>", fmt)
+  dat = cbind(rep(strata.labels$sex.aug, each=n.age),
+              rep(c("All", strata.labels$age), n.sex),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  dat = subset(dat, Age != "All") # "All" age rows are not populated by Spectrum
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
 #' Get Spectrum's calculated HIV-unrelated deaths
 #'
 #' Get Spectrum's calculated HIV-unrelated deaths by age, sex, and year in long or
