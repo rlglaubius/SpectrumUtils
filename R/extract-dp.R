@@ -961,6 +961,17 @@ dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
+#' Check if Spectrum used custom incidence rate ratios by age or sex
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return TRUE if custom incidence rate ratios were used, FALSE otherwise
+#' @export
+dp.inputs.irr.custom = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<IncEpidemicCustomFlagIdx MV>", fmt)[1,1]==1)
+}
+
 #' Get Spectrum input HIV incidence rate ratios by sex
 #'
 #' Get the input ratio of female to male incidence.
@@ -1060,3 +1071,5 @@ dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
   }
   return(dat)
 }
+
+
