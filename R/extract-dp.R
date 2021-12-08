@@ -1072,4 +1072,29 @@ dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get viral suppression inputs
+#'
+#' Get numbers of adults and children tested for viral suppression and numbers
+#' whose test indicated viral suppression by year
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @export
+dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=9, ncol=2025-2010+2)
+  raw = extract.dp.tag(dp.raw, "<ViralSuppressionInput MV3>", fmt)
+  raw[raw==dp_not_avail] = NA
+  raw = raw[,2:ncol(raw)] # modvar uses a non-standard first column
+  pop = c("Children 0-14", "Males 15+", "Females 15+")
+  ind = c("On ART", "Number tested", "Number virally suppressed")
+  dat = cbind(expand.grid(ind, pop), data.frame(raw))
+  colnames(dat) = c("Indicator", "Population", 2010:2025)
+  dat = subset(dat, Indicator != "On ART") # not filled in
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Indicator", "Population"), variable.name="Year", value.name="Value")
+  }
+  return(dat)
+}
+
 
