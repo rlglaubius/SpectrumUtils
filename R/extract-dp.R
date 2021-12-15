@@ -437,6 +437,74 @@ dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.yea
   return(dat)
 }
 
+#' Get new diagnoses among in-migrants
+#'
+#' Get input numbers of new diagnoses among in-migrants entered into CSAVR by
+#' sex, age, and year
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame
+#' @export
+dp.inputs.csavr.migr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.5yr)
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<NetMigrationPLHIV MV>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=n.age),
+              rep(strata.labels$age.5yr, n.sex),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get inputs numbers of in-migrants living with HIV
+#'
+#' Get input numbers of in-migrants living with HIV entered by
+#' sex, age, and year
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame
+#' @export
+dp.inputs.migr.plhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.5yr)
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<HIVMigrantsByAgeSex MV>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=n.age),
+              rep(strata.labels$age.5yr, n.sex),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the adult HIV disease progression rates
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
@@ -1096,5 +1164,4 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
   }
   return(dat)
 }
-
 
