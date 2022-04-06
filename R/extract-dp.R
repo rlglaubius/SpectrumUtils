@@ -316,7 +316,7 @@ dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, fina
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year - first.year + 1)
   raw = extract.dp.tag(dp.raw, "<CountryProjBigPop MV>", fmt)
   if (direction == "long") {
-    dat = cbind(Year=first.year:final.year, Value=raw[1,])
+    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
   } else {
     dat = data.frame(t(raw[1,]))
     colnames(dat) = sprintf("%d", first.year:final.year)
@@ -324,7 +324,7 @@ dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, fina
   return(dat)
 }
 
-#' Get the national population entered in a subnational projection
+#' Get the percentage of the national population living in a subnational region
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
 #' @param direction Request "wide" (default) or "long" format data.
@@ -340,6 +340,9 @@ dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, fina
 #'   population by entering a national population size trend, and the share of
 #'   the national population living in the subnational region.
 #'
+#'   Use \code{dp.inputs.pop.country} to extract the national
+#'   population of the country the subnational projection resides in.
+#'
 #' @export
 dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -347,7 +350,7 @@ dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, fina
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year - first.year + 1)
   raw = extract.dp.tag(dp.raw, "<PercentOfPop MV>", fmt)
   if (direction == "long") {
-    dat = cbind(Year=first.year:final.year, Value=raw[1,])
+    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
   } else {
     dat = data.frame(t(raw[1,]))
     colnames(dat) = sprintf("%d", first.year:final.year)
