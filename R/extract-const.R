@@ -11,6 +11,7 @@ strata.labels = list(
   cd4.adult = c("CD4>500", "CD4 350-500", "CD4 250-349", "CD4 200-249", "CD4 100-199", "CD4 50-99", "CD4<50"),
   cd4.csavr = c("CD4>500", "CD4 350-500", "CD4 200-350", "CD4<200"),
   incidence.model = c("Direct", "EPP", "AEM", "CSAVR", "Mortality", "ECDC"),
+  csavr.model = c("None", "Double logistic", "Single logistic", "Splines", "rLogistic"),
   month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 dp_not_avail = -9999 # Value used to indicate missing data in DemProj

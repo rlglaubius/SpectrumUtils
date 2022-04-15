@@ -412,6 +412,59 @@ dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get the model used to estimate incidence in CSAVR
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return The incidence model name as a factor (see "Details" below for factor
+#'   levels)
+#' @section Details:
+#'
+#'   CSAVR users select one of four curve types to model incidence:
+#'   \enumerate{
+#'   \item{None - no curve selected}
+#'   \item{Single logistic}
+#'   \item{Double logistic}
+#'   \item{Splines}
+#'   \item{rLogistic}
+#'   }
+#'
+#'   Use \code{dp.inputs.incidence.model()} to check if CSAVR was used to
+#'   estimate incidence; use \code{dp.inputs.incidence()} to get the incidence
+#'   estimate itself.
+#'
+#' @export
+dp.inputs.csavr.model = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  opt = extract.dp.tag(dp.raw, "<FitIncidenceTypeOfFit MV2>", fmt)[1,1]
+  return(factor(opt, levels=0:4, labels=strata.labels$csavr.model))
+}
+
+#' Check if incidence rate ratios (IRRs) by sex or age were estimated while fitting CSAVR
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return A data frame of TRUE/FALSE variables indicating whether IRR fitting by sex or
+#' age was enabled. These options are selected separately for each CSAVR incidence model.
+#' @section Limitations:
+#'
+#'   Users may change IRR settings in Spectrum after they have fitted an incidence model. As
+#'   a result, the IRR option indicators may not always correctly indicate whether IRRs were
+#'   estimated during fitting.
+#'
+#' @export
+dp.inputs.csavr.irr.options = function(dp.raw, direction="wide") {
+  # two-step cast needed because as.logical("1") = NA, but as.logical(as.integer("1")) = TRUE
+  fmt = list(cast=function(x) {as.logical(as.integer(x))}, offset=2, nrow=length(strata.labels$csavr.model) - 1, ncol=2)
+  raw = extract.dp.tag(dp.raw, "<CSAVRAdjustIRRs MV3>", fmt)
+  dat = cbind(strata.labels$csavr.model[2:5], data.frame(raw))
+  colnames(dat) = c("Model", "Sex", "Age")
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars="Model", variable.name="IRR", value.name="Value")
+  }
+  return(dat)
+}
+
 #' Get input numbers of overall new HIV diagnoses
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}

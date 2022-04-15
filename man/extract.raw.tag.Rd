@@ -47,7 +47,8 @@ Read raw Spectrum data from a given module
 
   \code{fmt$ncol}: Number of columns of data, relative to mod.raw$Data.
 
-  \code{fmt$cast} is a function used to cast the data to a desired type. For
-  example, set \code{fmt$type=as.numeric} to return numeric data.
+  \code{fmt$cast} is a function used to cast the data from a string to a
+  desired type. For example, set \code{fmt$type=as.numeric} to return numeric
+  data.
 }
 
