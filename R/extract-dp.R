@@ -485,7 +485,7 @@ dp.inputs.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, 
   raw[raw==dp_not_avail] = NA
 
   if (direction == "long") {
-    dat = cbind(Year=first.year:final.year, Value=raw[1,])
+    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
   } else {
     dat = data.frame(t(raw[1,]))
     colnames(dat) = sprintf("%d", first.year:final.year)
@@ -607,7 +607,7 @@ dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, fin
   raw[raw==dp_not_avail] = NA
 
   if (direction == "long") {
-    dat = cbind(Year=first.year:final.year, Value=raw[1,])
+    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
   } else {
     dat = data.frame(t(raw[1,]))
     colnames(dat) = sprintf("%d", first.year:final.year)
@@ -1302,7 +1302,7 @@ dp.inputs.irr.custom = function(dp.raw, direction="wide") {
 #'   \item{CSAVR - pattern estimated while fitting CSAVR}
 #'   }
 #'
-#'   @export
+#' @export
 dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
   n.epi = length(strata.labels$epi.patterns)
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)

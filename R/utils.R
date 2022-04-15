@@ -94,6 +94,19 @@ extract.pjn.tag = function(pjn.raw, tag, fmt) {
   return(extract.raw.tag(pjn.raw, tag, fmt))
 }
 
+#' Read the projection name
+#' @param pjn.raw Raw projection parameter data, as returned by
+#'   \code{read.raw.pjn()}
+#' @return The projection name. This will usually match the PJNZ file name. This
+#'   may not be true if the PJNZ is renamed manually, such as by renaming it in
+#'   Windows Explorer.
+#' @export
+extract.proj.name = function(pjn.raw) {
+  fmt = list(cast=as.character, offset=2, nrow=1, ncol=1)
+  dat = extract.pjn.tag(pjn.raw, "<Projection Name>", fmt)[1,1]
+  return(dat)
+}
+
 #' Read Spectrum geographic metadata
 #'
 #' Extract the country ISO-3166 numeric code and subnational unit name and id
@@ -128,6 +141,5 @@ extract.geo.info = function(pjn.raw) {
   dat = data.frame(iso.code = iso.raw, snu.name = snu.raw[1,1], snu.code = as.numeric(snu.raw[2,1]))
   return(dat)
 }
-
 
 
