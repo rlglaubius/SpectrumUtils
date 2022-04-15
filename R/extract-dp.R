@@ -1278,9 +1278,37 @@ dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.
 #' @param direction Ignored; included for compatibility with similar functions.
 #' @return TRUE if custom incidence rate ratios were used, FALSE otherwise
 #' @export
-dp.inputs.irr.custom = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+dp.inputs.irr.custom = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   return(extract.dp.tag(dp.raw, "<IncEpidemicCustomFlagIdx MV>", fmt)[1,1]==1)
+}
+
+#' Check which epidemic pattern is used to specify incidence rate ratios
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return the epidemic pattern name as a factor (see "Details" below for factor levels)
+#' @section Details:
+#'
+#'   Spectrum supports several ways of specifying epidemic patterns for
+#'   determining incidence patterns by sex and age:
+#'   \enumerate{
+#'   \item{Generalized - default pattern for generalized epidemics}
+#'   \item{Concentrated non-IDU - default pattern for concentrated epidemics driven by transmission modes other than injection drug use}
+#'   \item{Concentrated IDU - default pattern for concentrated epidemics driven by injection drug use}
+#'   \item{Fitted: fixed over time - deprecated, replaced by "Fitted to HIV prevalence or ART"}
+#'   \item{Fitted: time-varying - deprecated, replaced by "Fitted to HIV prevalence or ART"}
+#'   \item{Fitted to HIV prevalence or ART - pattern estimated from survey data}
+#'   \item{CSAVR - pattern estimated while fitting CSAVR}
+#'   }
+#'
+#'   @export
+dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
+  n.epi = length(strata.labels$epi.patterns)
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<IncEpidemicRGIdx MV>", fmt)[1,1]
+  dat = factor(dat, levels=0:(n.epi - 1), labels=strata.labels$epi.patterns)
+  return(dat)
 }
 
 #' Get Spectrum input HIV incidence rate ratios by sex
