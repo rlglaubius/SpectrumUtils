@@ -505,6 +505,35 @@ dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.yea
   return(dat)
 }
 
+#' Get input numbers of new HIV diagnoses by CD4 category
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data. #' @param
+#'   first.year First year of the projection. If \code{first.year=NULL}, it will
+#'   be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame of numbers of new diagnoses by CD4 cell category
+#' @export
+dp.inputs.csavr.diagnoses.cd4 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.cd4 = length(strata.labels$cd4.csavr)
+
+  fmt = list(cast=as.numeric, offset=2, nrow=n.cd4, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputCD4DistAtDiag MV>", fmt)
+  raw[raw==dp_not_avail] = NA
+  dat = cbind(rev(strata.labels$cd4.csavr), data.frame(raw))
+  colnames(dat) = c("CD4", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("CD4"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get input numbers of HIV-related deaths overall
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
@@ -513,7 +542,7 @@ dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.yea
 #'   be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame of numbers of new diagnoses
+#' @return A data frame of input numbers of HIV-related deaths
 #' @export
 dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -542,7 +571,7 @@ dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, fin
 #'   be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame of numbers of new diagnoses by sex
+#' @return A data frame of input numbers of HIV-related deaths by sex
 #' @export
 dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -574,7 +603,7 @@ dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL,
 #'   be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame of numbers of new diagnoses by age and sex
+#' @return A data frame of input numbers of HIV-related deaths by age and sex
 #' @export
 dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
