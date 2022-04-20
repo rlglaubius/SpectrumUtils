@@ -1283,6 +1283,17 @@ dp.inputs.irr.custom = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<IncEpidemicCustomFlagIdx MV>", fmt)[1,1]==1)
 }
 
+#' Check if Spectrum used incidence rate ratios by sex estimated by EPP
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return TRUE if sex ratios from EPP were selected, FALSE otherwise
+#' @export
+dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<SexRatioFromEPP MV>", fmt)[1,1] == 1)
+}
+
 #' Check which epidemic pattern is used to specify incidence rate ratios
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
