@@ -358,6 +358,70 @@ dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, fina
   return(dat)
 }
 
+#' Get the source indicated for number who know their HIV+ status
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return The knowledge of status (KoS) source as a factor (see "Details" below
+#'   for factor levels)
+#' @section Details:
+#'
+#'   Spectrum users can choose one of five sources for numbers of people living
+#'   with HIV who know their HIV status:
+#'   \enumerate{
+#'   \item{Case reports}
+#'   \item{Shiny90}
+#'   \item{CSAVR - the Case Surveillance and Vital Registration tool}
+#'   \item{ECDC - The European Centre for Disease Prevention and Control's HIV Modelling Tool}
+#'   \item{Direct - manually entered values by year}
+#'   }
+#'
+#' Note that users may change this selection after entering knowledge of status data into Spectrum.
+#' \code{dp.inputs.kos.data()} returns the input numbers of people who know their status.
+#'
+#' @export
+dp.inputs.kos.source = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  opt = extract.dp.tag(dp.raw, "<KnowledgeOfStatusInputType MV2>", fmt)[1,1]
+  return(factor(opt, levels=0:4, labels=strata.labels$kos.source))
+}
+
+#' Get input numbers of people living with HIV who know their HIV+ status
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}. Note that user inputs
+#'   start in 2010, so no inputs are available in earlier years.
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return a data frame of numbers who know their status.
+#' @export
+dp.inputs.kos.data = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  first.year = max(first.year, 2010) # input editor starts in 2010 if the project starts earlier
+
+  fmt = list(cast=as.numeric, offset=2, nrow=3, ncol=final.year - first.year + 2)
+  raw = extract.dp.tag(dp.raw, "<KnowledgeOfStatusInput MV3>", fmt)
+  raw = raw[,2:ncol(raw)] # first column of KoS inputs is intentionally blank in .DP
+  raw[raw==dp_not_avail] = NA
+
+  yrs = sprintf("%d", first.year:final.year)
+  dat = cbind(c("Children 0-14", "Males 15+", "Females 15+"), data.frame(raw))
+  colnames(dat) = c("Population", yrs)
+  if (direction == "long") {
+    dat = reshape2::melt(dat,
+                         id.vars=c("Population"),
+                         measure.vars=yrs,
+                         variable.name="Year",
+                         value.name="Value")
+    dat$Year = first.year:final.year
+  }
+  return(dat)
+}
+
 #' Get the model used to estimate incidence in a Spectrum projection
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
@@ -440,6 +504,45 @@ dp.inputs.csavr.model = function(dp.raw, direction="wide") {
   return(factor(opt, levels=0:4, labels=strata.labels$csavr.model))
 }
 
+#' Check which data were selected for CSAVR incidence estimation
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return The incidence model name as a factor (see "Details" below for factor
+#'   levels)
+#' @section Details:
+#'
+#'   The CSAVR fitting tool can estimate incidence using three different kinds
+#'   of data
+#'   \enumerate{
+#'   \item{New HIV diagnoses}
+#'   \item{HIV-related deaths}
+#'   \item{CD4 cell counts at diagnosis (as of 2022)}
+#'   }
+#'
+#'   Use \code{dp.inputs.incidence.model()} to check if CSAVR was used to
+#'   estimate incidence; use \code{dp.inputs.incidence()} to get the incidence
+#'   estimate itself.
+#'
+#'   Since CD4 counts at diagnoses were reintroduced in Spectrum for the 2022
+#'   round of UNAIDS HIV estimates, this function may not work correctly with
+#'   files produced with older versions of Spectrum.
+#'
+#' @export
+dp.inputs.csavr.data.options = function(dp.raw, direction="wide") {
+  ## CSAVRFitOptions has an unusual format. The "Data" column entry is blank,
+  ## and the first non-blank entry is for DP_PLHIV, which is not a valid option for
+  ## fitting.
+  fmt = list(cast=function(x) {as.logical(as.integer(x))}, offset=2, nrow=1, ncol=5)
+  raw = extract.dp.tag(dp.raw, "<CSAVRFitOptions MV3>", fmt)
+  dat = data.frame(raw[,3:5,drop=FALSE])
+  colnames(dat) = c("New HIV diagnoses", "AIDS deaths", "CD4 distribution")
+  if (direction == "long") {
+    dat = reshape2::melt(data.opt, measure.vars=colnames(data.opt), variable.name="Indicator", value.name="Value")
+  }
+  return(dat)
+}
+
 #' Check if incidence rate ratios (IRRs) by sex or age were estimated while fitting CSAVR
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
@@ -468,9 +571,9 @@ dp.inputs.csavr.irr.options = function(dp.raw, direction="wide") {
 #' Get input numbers of overall new HIV diagnoses
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of numbers of new diagnoses
@@ -497,9 +600,9 @@ dp.inputs.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, 
 #' Get input numbers of new HIV diagnoses by sex
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of numbers of new diagnoses by sex
@@ -529,9 +632,9 @@ dp.inputs.csavr.diagnoses.sex = function(dp.raw, direction="wide", first.year=NU
 #' Get input numbers of new HIV diagnoses by sex and age
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of numbers of new diagnoses by age and sex
@@ -561,9 +664,9 @@ dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.yea
 #' Get input numbers of new HIV diagnoses by CD4 category
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of numbers of new diagnoses by CD4 cell category
@@ -590,9 +693,9 @@ dp.inputs.csavr.diagnoses.cd4 = function(dp.raw, direction="wide", first.year=NU
 #' Get input numbers of HIV-related deaths overall
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of input numbers of HIV-related deaths
@@ -619,9 +722,9 @@ dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, fin
 #' Get input numbers of HIV-related deaths by sex
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of input numbers of HIV-related deaths by sex
@@ -651,9 +754,9 @@ dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL,
 #' Get input numbers of HIV-related deaths by sex and age
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame of input numbers of HIV-related deaths by age and sex
@@ -686,9 +789,9 @@ dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=N
 #' sex, age, and year
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#' will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame
@@ -716,13 +819,13 @@ dp.inputs.csavr.migr.diagnoses = function(dp.raw, direction="wide", first.year=N
 
 #' Get inputs numbers of in-migrants living with HIV
 #'
-#' Get input numbers of in-migrants living with HIV entered by
-#' sex, age, and year
+#' Get input numbers of in-migrants living with HIV entered by sex, age, and
+#' year
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data. #' @param
-#'   first.year First year of the projection. If \code{first.year=NULL}, it will
-#'   be filled in using \code{dp.inputs.first.year()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame
