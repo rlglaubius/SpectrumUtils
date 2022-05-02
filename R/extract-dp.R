@@ -1487,6 +1487,95 @@ dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.ye
   return(dat)
 }
 
+#' Get the HIV-related fertility local adjustment factor
+#'
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @param first.year Ignored; included for compatibility with similar functions.
+#' @param final.year Ignored; included for compatibility with similar functions.
+#' @return the HIV-related fertility local adjustment factor
+#' @export
+dp.inputs.hiv.frr.location = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<FRRbyLocation MV>", fmt)[1,1])
+}
+
+#' Get HIV-related fertility adjustments by age
+#'
+#' Get HIV-related fertility adjustments by age and year for women with
+#' untreated HIV
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.hiv.frr.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  nr = length(strata.labels$age.fert)
+  fmt = list(cast=as.numeric, offset=2, nrow=nr, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<HIVTFR MV4>", fmt)
+  dat = cbind(strata.labels$age.fert, data.frame(raw))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get HIV-related fertility adjustments by CD4 cell count
+#'
+#' Get HIV-related fertility adjustments by CD4 cell count category for women
+#' with untreated HIV
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year Ignored; included for compatibility with similar functions.
+#' @param final.year Ignored; included for compatibility with similar functions.
+#' @return A data frame.
+#' @export
+dp.inputs.hiv.frr.cd4 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=length(strata.labels$cd4.adult)+1)
+  raw = extract.dp.tag(dp.raw, "<FertCD4Discount MV>", fmt)
+  dat = raw[,2:ncol(raw),drop=FALSE] # first cell is empty
+  if (direction == "long") {
+    dat = data.frame(CD4=strata.labels$cd4.adult, Value=dat[1,])
+  } else {
+    dat = data.frame(dat)
+    colnames(dat) = strata.labels$cd4.adult
+  }
+  return(dat)
+}
+
+#' Get HIV-related fertility adjustments on ART
+#'
+#' Get HIV-related fertility adjustments by age for women on ART
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year Ignored; included for compatibility with similar functions.
+#' @param final.year Ignored; included for compatibility with similar functions.
+#' @return A data frame.
+#' @export
+dp.inputs.hiv.frr.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=length(strata.labels$age.fert))
+  raw = extract.dp.tag(dp.raw, "<RatioWomenOnART MV2>", fmt)
+  if (direction == "long") {
+    dat = data.frame(Age=strata.labels$age.fert, Value=raw[1,])
+  } else {
+    dat = data.frame(raw)
+    colnames(dat) = strata.labels$age.fert
+  }
+  return(dat)
+}
+
 #' Get numbers of adults on ART by month during 2020-2021
 #'
 #' Get the number of adults on ART during 2020-2021, stratified by sex.
