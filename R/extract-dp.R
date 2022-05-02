@@ -905,6 +905,21 @@ dp.inputs.adult.hiv.mortality.off.art = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get the HIV-related mortality rate ratio among adults on ART
+#'
+#' Get the HIV-related mortality rate ratio among adults on ART. This is a
+#' scalar multiplier applied on top of mortality rate ratio trends by year and
+#' time on ART.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return the mortality multiplier
+#' @export
+dp.inputs.adult.hiv.mortality.art.scale = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<MortalityRatesMultiplier MV>", fmt)[1,1])
+}
+
 #' Get Spectrum's calculated number of births
 #'
 #' Get Spectrum's calculated number of births by year in long or wide format.
