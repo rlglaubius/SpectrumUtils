@@ -16,4 +16,8 @@ strata.labels = list(
   epi.patterns = c("Generalized", "Concentrated non-IDU", "Concentrated IDU", "Custom", "Fitted: fixed over time", "Fitted: time-varying", "Fitted to HIV prevalence or ART", "CSAVR", "Web"),
   month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
+output.labels = list(
+  value = "Value"
+)
+
 dp_not_avail = -9999 # Value used to indicate missing data in DemProj

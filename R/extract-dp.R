@@ -1650,7 +1650,80 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
   dat = subset(dat, Indicator != "On ART") # not filled in
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars=c("Indicator", "Population"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
 }
 
+#' Get COVID-19 deaths inputs
+#'
+#' Get COVID-19 deaths inputs to DemProj. This includes values for every year of
+#' the projection, not just 2019 and later.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.covid19.deaths = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=4, nrow=3, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<COVID19DeathRate_MV>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw[c(1,3),]))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get the input age distribution of COVID-19 deaths
+#'
+#' Get the input age distribution of COVID-19 deaths. This includes values for
+#' every year of the projection, not just 2019 and later.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.covid19.pattern = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  nr = length(strata.labels$sex) * length(strata.labels$age.5yr)
+  fmt = list(cast=as.numeric, offset=3, nrow=nr, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<COVID19DeathAgeDist MV>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age.5yr)),
+              rep(strata.labels$age.5yr, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name=output.labels$value)
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Check if COVID-19 inputs are enabled
+#'
+#' Countries can toggle entry of COVID-19 deaths as a configuration option. This
+#' function checks whether that toggle is turned on.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return TRUE if the toggle is enabled, FALSE otherwise.
+#' @export
+dp.inputs.covid19.enabled = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<EnterCOVID19Deaths_MV>", fmt)[1,1] == 1)
+}
