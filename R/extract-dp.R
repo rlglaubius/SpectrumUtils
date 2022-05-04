@@ -1390,6 +1390,43 @@ dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
+#' Get the maximum amount that AIM can adjust incidence estimates from EPP
+#'
+#' EPP hands AIM estimated HIV incidence and prevalence trends. EPP and AIM
+#' have different structures, so EPP's incidence may produce a somewhat different prevalence trend
+#' than EPP provides. EPP estimates its trends using HIV prevalence data, so
+#' AIM may adjust the incidence it gets from EPP to better match EPP's prevalence
+#' estimate, subject to a user-specified maximum allowed adjustment. This
+#' function returns that maximum. The minimum adjustment is equal to the reciprocal
+#' of the maximum.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return the maximum allowed adjustment.
+#' @export
+dp.inputs.epp.adjustment.cap = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<EPPMaxAdjFactor MV>", fmt)[1,1])
+}
+
+#' Check if AIM is allowed to adjust HIV incidence from EPP
+#'
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return TRUE if adjustments is allowed, FALSE otherwise
+#' @section Details:
+#'
+#'   The cap on adjustments allowed can be accessed using
+#'   \code{dp.inputs.epp.adjustment.cap}. See the documentation of that function
+#'   for more details on the rationale for adjustment.
+#'
+#' @export
+dp.inputs.epp.adjustment.enabled = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<EPPPrevAdj MV>", fmt)[1,1] == 1)
+}
+
 #' Check if Spectrum used custom incidence rate ratios by age or sex
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
