@@ -171,18 +171,8 @@ dp.inputs.migr.dist = function(dp.raw, direction="wide", first.year=NULL, final.
 #' @return A data frame.
 #' @export
 dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<SexBirthRatio MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year=first.year:final.year, Value=t(raw))
-  } else {
-    dat = raw
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<SexBirthRatio MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get input survival rates
@@ -316,17 +306,8 @@ dp.inputs.use.external.pop = function(dp.raw, direction="wide") {
 #'
 #' @export
 dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<CountryProjBigPop MV>", fmt)
-  if (direction == "long") {
-    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(t(raw[1,]))
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<CountryProjBigPop MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get the percentage of the national population living in a subnational region
@@ -350,17 +331,8 @@ dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, fina
 #'
 #' @export
 dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<PercentOfPop MV>", fmt)
-  if (direction == "long") {
-    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(t(raw[1,]))
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<PercentOfPop MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get the source indicated for number who know their HIV+ status
@@ -938,17 +910,8 @@ dp.inputs.adult.hiv.mortality.art.scale = function(dp.raw, direction="wide") {
 #' @return A data frame.
 #' @export
 dp.output.births = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<Births MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year=first.year:final.year, Value=t(raw))
-  } else {
-    dat = raw
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<Births MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get Spectrum's calculated population
@@ -1570,20 +1533,8 @@ dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
 #' @return A data frame.
 #' @export
 dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<HIVSexRatio MV>", fmt)
-
-  if (direction=="long") {
-    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
-  } else {
-    colnames(raw) = sprintf("%d", first.year:final.year)
-    dat = data.frame(raw, check.names=FALSE)
-  }
-
-  return(dat)
+  tag = "<HIVSexRatio MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=3))
 }
 
 #' Get Spectrum input HIV incidence rate ratios by age
