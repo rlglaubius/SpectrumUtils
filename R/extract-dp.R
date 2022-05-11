@@ -19,6 +19,21 @@ extract.dp.tag = function(dp.raw, tag, fmt) {
   return(val)
 }
 
+#' Helper function for extracting a single row of data with one value per year
+dp.extract.time.series = function(dp.raw, direction="wide", first.year, final.year, tag, offset) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=offset, nrow=1, ncol = final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, tag, fmt)
+  if (direction=="long") {
+    dat = data.frame(Year = first.year:final.year, Value=raw[1,])
+  } else {
+    dat = data.frame(raw)
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  }
+  return(dat)
+}
+
 #' Get the first year of a Spectrum projection
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
@@ -54,18 +69,8 @@ dp.inputs.final.year = function(dp.raw, direction="wide") {
 #' @return A data frame.
 #' @export
 dp.inputs.tfr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<TFR MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year=first.year:final.year, Value=t(raw))
-  } else {
-    dat = raw
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<TFR MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get the input proportional age-specific fertility rates
@@ -1339,18 +1344,8 @@ dp.inputs.adult.art.initiations = function(dp.raw, direction="wide", first.year=
 #' @return A data frame.
 #' @export
 dp.inputs.adult.art.reinitiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol = final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<NumberInitTreatmentReinits MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year = first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(raw)
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<NumberInitTreatmentReinits MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get input numbers of children initiating ART
@@ -1365,18 +1360,8 @@ dp.inputs.adult.art.reinitiations = function(dp.raw, direction="wide", first.yea
 #' @return A data frame.
 #' @export
 dp.inputs.child.art.initiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol = final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<NumNewlyInitARTChild MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year = first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(raw)
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<NumNewlyInitARTChild MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get input numbers of children who re-initiated ART
@@ -1391,18 +1376,8 @@ dp.inputs.child.art.initiations = function(dp.raw, direction="wide", first.year=
 #' @return A data frame.
 #' @export
 dp.inputs.child.art.reinitiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol = final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<NumberInitTreatmentReinitsChild MV>", fmt)
-  if (direction=="long") {
-    dat = data.frame(Year = first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(raw)
-    colnames(dat) = sprintf("%d", first.year:final.year)
-  }
-  return(dat)
+  tag = "<NumberInitTreatmentReinitsChild MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get Spectrum ART by age inputs
