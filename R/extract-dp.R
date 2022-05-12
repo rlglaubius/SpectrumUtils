@@ -1208,6 +1208,38 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
   return(subset(dat, Sex != "Male+Female"))
 }
 
+#' Get the input percentage of adults on ART who are lost to follow-up annually
+#'
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<PercLostFollowup MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' Get the input percentage of children on ART who are lost to follow-up annually
+#'
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<PercLostFollowupChild MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
 #' Get Spectrum child HIV treatment inputs
 #'
 #' Get input numbers or percentages of children on antiretroviral therapy (ART)
