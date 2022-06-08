@@ -41,7 +41,7 @@ ha.inputs.first.year = function(ha.raw, direction="wide") {
 #' @param ha.raw Goals ASM module data in raw format, as returned by
 #'   \code{read.raw.ha()}
 #' @param direction Ignored; included for compatibility with similar functions.
-#' @return the first year of the projection.
+#' @return the final year of the projection.
 #' @section Details:
 #'
 #' Analogous functions are available for other modules. For example, \code{dp.inputs.final.year} will

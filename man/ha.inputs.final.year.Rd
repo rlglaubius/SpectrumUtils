@@ -13,7 +13,7 @@ ha.inputs.final.year(ha.raw, direction = "wide")
 \item{direction}{Ignored; included for compatibility with similar functions.}
 }
 \value{
-the first year of the projection.
+the final year of the projection.
 }
 \description{
 Get the final year of a Spectrum projection
