@@ -91,4 +91,34 @@ ha.inputs.keypop.size = function(ha.raw, direction="wide", first.year=NULL, fina
   return(dat)
 }
 
+#' Get viral suppression inputs
+#'
+#' Get input levels of viral suppression among adult PLHIV on ART by year and
+#' age group
+#' @param ha.raw Goals ASM module data in raw format, as returned by
+#'   \code{read.raw.ha()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.final.year()}
+#' @return A data frame.
+#' @export
+ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  fmt = list(cast=as.numeric, offset=1, nrow=8, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, "<ARTViralSuppression>", fmt)
+  dat = cbind(Sex = rep(rev(strata.labels$sex), each=4),
+              Age = rep(strata.labels$age.cd4.adult, 2),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 
