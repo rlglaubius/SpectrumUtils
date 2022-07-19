@@ -1063,6 +1063,40 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
   return(dat)
 }
 
+#' Get Spectrum's calculated number in need of ART
+#'
+#' Get Spectrum's calculated number in need of ART by year, sex, and five-year age group
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.art.need = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  age.labels = c("All ages", strata.labels$age.5yr)
+  sex.labels = strata.labels$sex.aug
+  n.age = length(age.labels)
+  n.sex = length(sex.labels)
+  fmt = list(cast=as.numeric, offset=2, nrow=n.age*n.sex, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<NeedART MV>", fmt)
+  dat = cbind(rep(sex.labels, length(age.labels)),
+              rep(age.labels, each=length(sex.labels)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get Spectrum's calculated new HIV infections
 #'
 #' Get Spectrum's calculated new HIV infections by age, sex, and year in long or
