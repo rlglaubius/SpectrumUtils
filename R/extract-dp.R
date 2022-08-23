@@ -175,6 +175,44 @@ dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=N
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
+#' Get the input life table selection
+#'
+#' Spectrum users may select a life table from a list of model life tables, or use a
+#' country-specific life table based on the latest World Population Prospects
+#' revision. This function indicates which selection the user made.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return The life table name as a factor
+#' @section Details:
+#'
+#'   \code{dp.inputs.life.table} just indicates which life table was selected.
+#'   Life table indicators can be accessed separately: \code{dp.inputs.surv}
+#'   returns survival ratios, and \code{dp.inputs.e0} returns life expectancy at
+#'   birth. To keep projection file sizes small, most other common life table
+#'   indicators are not saved.
+#'
+#'   Supported life tables include:
+#'   \enumerate{
+#'   \item{Coale-Demeny West}
+#'   \item{Coale-Demeny North}
+#'   \item{Coale-Demeny East}
+#'   \item{Coale-Demeny South}
+#'   \item{UN General}
+#'   \item{UN Chile}
+#'   \item{UN South Asia}
+#'   \item{UN East Asia}
+#'   \item{Country-specific (usually based on the latest WPP revision)}
+#'   \item{Custom}
+#'   }
+#'
+#' @export
+dp.inputs.life.table = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=1)
+  opt = extract.dp.tag(dp.raw, "<LifeTableNum MV2>", fmt)[1,1]
+  return(factor(opt, levels=1:11, labels=strata.labels$life.table))
+}
+
 #' Get input survival rates
 #'
 #' Get input survival rates (Sx) by age, sex, and year. This is expressed as
@@ -263,7 +301,7 @@ dp.inputs.e0.default = function(dp.raw, direction="wide", first.year=NULL, final
     dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
-  return(dat)
+    return(dat)
 }
 
 #' Get the external population inputs used to calculate population adjustments
