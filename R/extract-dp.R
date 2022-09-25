@@ -1932,6 +1932,71 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get HIV prevalence entered from household surveys
+#'
+#' Get HIV prevalence data from household surveys that have been entered into
+#' Spectrum for validation of its HIV prevalence estimates.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Spectrum can store data from up to five household surveys. Data
+#'   consist of HIV prevalence estimates by sex (male, female, both)
+#'   and five-year age group (0-4, 5-9, ..., 75-79, 80+). Five statistics
+#'   are stored for each group:
+#'
+#'   \enumerate{
+#'   \item{Number - not used}
+#'   \item{Prevalence - HIV prevalence point estimate}
+#'   \item{Lower - 95\% confidence interval lower bound}
+#'   \item{Upper - 95\% confidence interval upper bound}
+#'   \item{N - sample size. Countries may enter non-integral survey-weighted sample sizes}
+#'   }
+#'
+#' @export
+dp.inputs.survey.hiv.prevalence = function(dp.raw, direction="wide") {
+  max_surveys = 5
+
+  ## nrow allows for a blank row between consecutive surveys
+  nrow = (length(strata.labels$sex.aug) * length(strata.labels$age.5yr) + 1) * max_surveys - 1
+
+  fmt_data = list(cast=as.numeric,   offset=4, nrow=nrow, ncol=5)
+  fmt_used = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+  fmt_name = list(cast=as.character, offset=2, nrow=1, ncol=max_surveys)
+  fmt_year = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+
+  raw_data = extract.dp.tag(dp.raw, "<PrevSurveyData MV4>", fmt_data)
+  raw_used = extract.dp.tag(dp.raw, "<PrevSurveyUsed MV2>", fmt_used)
+  raw_name = extract.dp.tag(dp.raw, "<PrevSurveyName MV2>", fmt_name)
+  raw_year = extract.dp.tag(dp.raw, "<PrevSurveyYear MV2>", fmt_year)
+
+  raw_data = raw_data[!is.na(raw_data[,1]),] # drop blank rows separating surveys
+  raw_data = as.data.frame(raw_data)
+  colnames(raw_data) = c("Number", "Prevalence", "Lower", "Upper", "N")
+
+  dat = cbind(expand.grid(Age  = strata.labels$age.5yr,
+                          Sex  = strata.labels$sex.aug,
+                          Name = raw_name),
+              raw_data)
+
+  ## Merge in survey metadata
+  meta = data.frame(Year=as.vector(raw_year),
+                    Name=as.vector(raw_name),
+                    Used=as.vector(raw_used))
+  dat = dplyr::left_join(dat, meta, by=c("Name"))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Name", "Sex", "Age", "Year", "Used"), variable.name="Statistic", value.name="Value")
+  } else {
+    dat = dat[,c("Name", "Sex", "Age", "Year", "Used", "Prevalence", "Lower", "Upper", "N")]
+  }
+
+  return(dat)
+}
+
+
 #' Get COVID-19 deaths inputs
 #'
 #' Get COVID-19 deaths inputs to DemProj. This includes values for every year of
