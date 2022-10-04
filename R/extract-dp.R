@@ -175,6 +175,44 @@ dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=N
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
+#' Get the input life table selection
+#'
+#' Spectrum users may select a life table from a list of model life tables, or use a
+#' country-specific life table based on the latest World Population Prospects
+#' revision. This function indicates which selection the user made.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return The life table name as a factor
+#' @section Details:
+#'
+#'   \code{dp.inputs.life.table} just indicates which life table was selected.
+#'   Life table indicators can be accessed separately: \code{dp.inputs.surv}
+#'   returns survival ratios, and \code{dp.inputs.e0} returns life expectancy at
+#'   birth. To keep projection file sizes small, most other common life table
+#'   indicators are not saved.
+#'
+#'   Supported life tables include:
+#'   \enumerate{
+#'   \item{Coale-Demeny West}
+#'   \item{Coale-Demeny North}
+#'   \item{Coale-Demeny East}
+#'   \item{Coale-Demeny South}
+#'   \item{UN General}
+#'   \item{UN Chile}
+#'   \item{UN South Asia}
+#'   \item{UN East Asia}
+#'   \item{Country-specific (usually based on the latest WPP revision)}
+#'   \item{Custom}
+#'   }
+#'
+#' @export
+dp.inputs.life.table = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=1)
+  opt = extract.dp.tag(dp.raw, "<LifeTableNum MV2>", fmt)[1,1]
+  return(factor(opt, levels=1:11, labels=strata.labels$life.table))
+}
+
 #' Get input survival rates
 #'
 #' Get input survival rates (Sx) by age, sex, and year. This is expressed as
@@ -204,6 +242,66 @@ dp.inputs.surv = function(dp.raw, direction="wide", first.year=NULL, final.year=
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
+}
+
+#' Get the input life expectancy at birth
+#'
+#' Get the input life expectancy at birth (e0) by year and sex.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.e0 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  ages = c("Birth", strata.labels$age)
+  n.sex = length(strata.labels$sex)
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<LE MV2>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Get the default input life expectancy at birth
+#'
+#' Get the default input life expectancy at birth (e0) by year and sex. These
+#' life expectancy trends typically come from the latest UN Population Division
+#' World Population Prospects revision. These may differ from the user-editable
+#' life expectancy used in Spectrum calculation, which can be accessed using
+#' \code{dp.inputs.e0}.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.inputs.e0.default = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  ages = c("Birth", strata.labels$age)
+  n.sex = length(strata.labels$sex)
+  fmt = list(cast=as.numeric, offset=4, nrow=n.sex, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<DefaultUPDLE MV>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+    return(dat)
 }
 
 #' Get the external population inputs used to calculate population adjustments
@@ -1063,6 +1161,7 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
   return(dat)
 }
 
+
 #' Get Spectrum's calculated number in need of ART
 #'
 #' Get Spectrum's calculated number in need of ART by year, sex, and five-year age group
@@ -1830,6 +1929,138 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
     dat = reshape2::melt(dat, id.vars=c("Indicator", "Population"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
+  return(dat)
+}
+
+#' Get HIV prevalence data entered from household surveys
+#'
+#' Get HIV prevalence data from household surveys that have been entered into
+#' Spectrum for validation of its HIV prevalence estimates.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Spectrum can store data from up to five household surveys. Data
+#'   consist of HIV prevalence estimates by sex (male, female, both)
+#'   and five-year age group (0-4, 5-9, ..., 75-79, 80+). Five statistics
+#'   are stored for each group:
+#'
+#'   \enumerate{
+#'   \item{Number - not used}
+#'   \item{Prevalence - HIV prevalence point estimate}
+#'   \item{Lower - 95\% confidence interval lower bound}
+#'   \item{Upper - 95\% confidence interval upper bound}
+#'   \item{N - sample size. Countries may enter non-integral survey-weighted sample sizes}
+#'   }
+#'
+#' @export
+dp.inputs.survey.hiv.prevalence = function(dp.raw, direction="wide") {
+  max_surveys = 5
+
+  ## nrow allows for a blank row between consecutive surveys
+  nrow = (length(strata.labels$sex.aug) * length(strata.labels$age.5yr) + 1) * max_surveys - 1
+
+  fmt_data = list(cast=as.numeric,   offset=4, nrow=nrow, ncol=5)
+  fmt_used = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+  fmt_name = list(cast=as.character, offset=2, nrow=1, ncol=max_surveys)
+  fmt_year = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+
+  raw_data = extract.dp.tag(dp.raw, "<PrevSurveyData MV4>", fmt_data)
+  raw_used = extract.dp.tag(dp.raw, "<PrevSurveyUsed MV2>", fmt_used)
+  raw_name = extract.dp.tag(dp.raw, "<PrevSurveyName MV2>", fmt_name)
+  raw_year = extract.dp.tag(dp.raw, "<PrevSurveyYear MV2>", fmt_year)
+
+  raw_data = raw_data[!is.na(raw_data[,1]),] # drop blank rows separating surveys
+  raw_data = as.data.frame(raw_data)
+  colnames(raw_data) = c("Number", "Prevalence", "Lower", "Upper", "N")
+
+  dat = cbind(expand.grid(Age  = strata.labels$age.5yr,
+                          Sex  = strata.labels$sex.aug,
+                          Name = raw_name),
+              raw_data)
+
+  ## Merge in survey metadata
+  meta = data.frame(Year=as.vector(raw_year),
+                    Name=as.vector(raw_name),
+                    Used=as.vector(raw_used))
+  dat = dplyr::left_join(dat, meta, by=c("Name"))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Name", "Sex", "Age", "Year", "Used"), variable.name="Statistic", value.name="Value")
+  } else {
+    dat = dat[,c("Name", "Sex", "Age", "Year", "Used", "Prevalence", "Lower", "Upper", "N")]
+  }
+
+  return(dat)
+}
+
+#' Get ART coverage data entered from household surveys
+#'
+#' Get ART coverage data from household surveys that have been entered into
+#' Spectrum for validation of its ART coverage estimates.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Spectrum can store data from up to five household surveys. Data
+#'   consist of ART coverage estimates by sex (male, female, both)
+#'   and five-year age group (0-4, 5-9, ..., 75-79, 80+). Five statistics
+#'   are stored for each group:
+#'
+#'   \enumerate{
+#'   \item{Number - not used}
+#'   \item{Coverage - ART coverage point estimate}
+#'   \item{Lower - 95\% confidence interval lower bound}
+#'   \item{Upper - 95\% confidence interval upper bound}
+#'   \item{N - sample size. Countries may enter non-integral survey-weighted sample sizes}
+#'   }
+#'
+#' @export
+dp.inputs.survey.art.coverage = function(dp.raw, direction="wide") {
+  max_surveys = 5
+
+  lab.age = c(strata.labels$age.5yr, "0-14", "15-49", "50+")
+  num.age = length(lab.age)
+
+  ## nrow allows for a blank row between consecutive surveys
+  nrow = (length(strata.labels$sex.aug) * num.age + 1) * max_surveys - 1
+
+  fmt_data = list(cast=as.numeric,   offset=4, nrow=nrow, ncol=5)
+  fmt_used = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+  fmt_name = list(cast=as.character, offset=2, nrow=1, ncol=max_surveys)
+  fmt_year = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
+
+  raw_data = extract.dp.tag(dp.raw, "<ARTCovSurveyData MV>", fmt_data)
+  raw_used = extract.dp.tag(dp.raw, "<ARTCovSurveyUsed MV>", fmt_used)
+  raw_name = extract.dp.tag(dp.raw, "<ARTCovSurveyName MV>", fmt_name)
+  raw_year = extract.dp.tag(dp.raw, "<ARTCovSurveyYear MV>", fmt_year)
+
+  raw_data = raw_data[!is.na(raw_data[,1]),] # drop blank rows separating surveys
+  raw_data[raw_data==dp_not_avail] = NA      # replace missing values with NA
+  raw_data = as.data.frame(raw_data)
+  colnames(raw_data) = c("Number", "Coverage", "Lower", "Upper", "N")
+
+  dat = cbind(expand.grid(Age  = lab.age,
+                          Sex  = strata.labels$sex.aug,
+                          Name = raw_name),
+              raw_data)
+
+  ## Merge in survey metadata
+  meta = data.frame(Year=as.vector(raw_year),
+                    Name=as.vector(raw_name),
+                    Used=as.vector(raw_used))
+  dat = dplyr::left_join(dat, meta, by=c("Name"))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Name", "Sex", "Age", "Year", "Used"), variable.name="Statistic", value.name="Value")
+  } else {
+    dat = dat[,c("Name", "Sex", "Age", "Year", "Used", "Coverage", "Lower", "Upper", "N")]
+  }
+
   return(dat)
 }
 
