@@ -121,4 +121,42 @@ ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL
   return(dat)
 }
 
+#' Get the number of infections transmitted
+#'
+#' Get the number of infections transmitted by PLHIV according to sex, age,
+#' infection stage, and ART status
+#' @param ha.raw Goals ASM module data in raw format, as returned by
+#'   \code{read.raw.ha()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.final.year()}
+#' @return A data frame.
+#' @export
+ha.output.transmitted = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
 
+  lab_sex = c("Male", "Female") # strata.labels$sex
+  lab_age = c(sprintf("%d", 15:79), "80+")
+  lab_hiv = c("Primary", "Asymptomatic", "Symptomatic")
+  lab_art = c("No ART", "Unused1", "Unused2", "Unused3", "[0,6) months", "[6,12) months", "12+ months")
+
+  num_sex = length(lab_sex)
+  num_age = length(lab_age)
+  num_hiv = length(lab_hiv)
+  num_art = length(lab_art)
+
+  fmt = list(cast=as.numeric, offset=5, nrow=num_sex * num_age * num_hiv * num_art, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, "<Number of infections transmitted>", fmt)
+  dat = cbind(expand.grid(ART=lab_art, Stage=lab_hiv, Age=lab_age, Sex=lab_sex),
+              data.frame(raw))
+  colnames(dat) = c("ART", "Stage", "Age", "Sex", sprintf("%d", first.year:final.year))
+  dat = dat[!(dat$ART %in% c("Unused1", "Unused2", "Unused3")),]
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age", "Stage", "ART"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
