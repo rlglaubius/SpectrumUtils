@@ -1097,6 +1097,33 @@ dp.output.bigpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
   return(dat)
 }
 
+
+#' Get Spectrum's calculated infant mortality rate
+#'
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.imr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=length(strata.labels$sex.aug), ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<IMR MV2>", fmt)
+  dat = cbind(strata.labels$sex.aug[c(2,3,1)], data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get Spectrum's calculated HIV-positive population
 #'
 #' Get Spectrum's calculated HIV-positive population by age, sex, and year in long or wide
