@@ -15,6 +15,7 @@ strata.labels = list(
   incidence.model = c("Direct", "EPP", "AEM", "CSAVR", "Mortality", "ECDC"),
   csavr.model = c("None", "Double logistic", "Single logistic", "Splines", "rLogistic"),
   epi.patterns = c("Generalized", "Concentrated non-IDU", "Concentrated IDU", "Custom", "Fitted: fixed over time", "Fitted: time-varying", "Fitted to HIV prevalence or ART", "CSAVR", "Web"),
+  opt.region = c("Asia", "Central Africa", "Developed Countries", "East Africa", "Eastern Europe", "Latin America and Caribbean", "North Africa Middle East", "Southern Africa", "West Africa"),
   month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 output.labels = list(

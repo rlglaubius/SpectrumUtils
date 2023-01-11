@@ -2163,3 +2163,66 @@ dp.inputs.covid19.enabled = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=1)
   return(extract.dp.tag(dp.raw, "<EnterCOVID19Deaths_MV>", fmt)[1,1] == 1)
 }
+
+#' AIM advanced options regional configuration
+#'
+#' Get the region selected for advanced options parameter values in Spectrum
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return The region name as a factor (see "Details" below for factor levels)
+#' @describeIn dp.inputs.adult.hiv.mortality.region Mortality rates among HIV+ adults not on ART
+#' @section Details:
+#'
+#' Spectrum options are specified for one of several regions:
+#' \enumerate{
+#' \item{Asia}
+#' \item{Central Africa}
+#' \item{Developed Countries}
+#' \item{East Africa}
+#' \item{Eastern Europe}
+#' \item{Latin America and Caribbean}
+#' \item{North Africa Middle East}
+#' \item{Southern Africa}
+#' \item{West Africa}
+#' }
+#'
+#' @export
+dp.inputs.adult.hiv.mortality.region = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<AdultHIVMortNoARTRegion MV2>", fmt)[1,1]
+  return(factor(dat, levels=1:length(strata.labels$opt.region), labels=strata.labels$opt.region))
+}
+
+#' @describeIn dp.inputs.adult.hiv.mortality.region Mortality rates among HIV+ adults on ART
+#' @export
+dp.inputs.adult.hiv.mortality.art.region = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<HIV Mortality with ART Country or Region MV>", fmt)[1,1]
+  return(factor(dat, levels=1:length(strata.labels$opt.region), labels=strata.labels$opt.region))
+}
+
+
+#' AIM advanced option configuration
+#'
+#' Check if advanced options in AIM are unlocked for customization.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Ignored; included for compatibility with similar functions.
+#' @return TRUE if the parameter is unlocked for configuration, FALSE otherwise.
+#' @describeIn dp.inputs.adult.hiv.mortality.custom Mortality rates among HIV+ adults not on ART
+#' @export
+dp.inputs.adult.hiv.mortality.custom = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<AdultHIVMortNoARTCustomFlag MV>", fmt)[1,1]
+  return(dat==1)
+}
+
+#' @describeIn dp.inputs.adult.hiv.mortality.custom Mortality rates among HIV+ adults on ART
+#' @export
+dp.inputs.adult.hiv.mortality.art.custom = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<AdultHIVMortARTCustomFlag MV>", fmt)[1,1]
+  return(dat==1)
+}
+
