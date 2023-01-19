@@ -1373,8 +1373,8 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
 #'   percentages. These units can vary from year to year. When
 #'   \code{direction="wide"}, the return value will include rows for numbers and
 #'   for percentages, with percentages missing in years where numbers were
-#'   entered or vice-versa. When \code{direction="long"}, the data frame will only
-#'   include rows for whichever unit was entered into Spectrum in any year.
+#'   entered or vice-versa. When \code{direction="long"}, the data frame will
+#'   include data for numbers or percentages, but not both, for any year.
 #'
 #' @export
 dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -2224,5 +2224,46 @@ dp.inputs.adult.hiv.mortality.art.custom = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   dat = extract.dp.tag(dp.raw, "<AdultHIVMortARTCustomFlag MV>", fmt)[1,1]
   return(dat==1)
+}
+
+#' Data on abortions among HIV-positive women
+#'
+#' Get input data on the number of pregnancies among HIV-positive women
+#' terminated by abortion
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Abortion data can be entered in Spectrum as numbers or percentages
+#'   of HIV-positive women. These units can vary from year to year. When
+#'   \code{direction="wide"}, the return value includes separate rows
+#'   numbers and percentages. When \code{direction="long"}, the data frame
+#'   will include one row per year with the unit indicated.
+#'
+#' @export
+dp.inputs.hiv.abortion = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  vals = dp.extract.time.series(dp.raw, direction="wide", first.year, final.year, tag="<PregTermAbortion MV3>",       offset=2)
+  unit = dp.extract.time.series(dp.raw, direction="wide", first.year, final.year, tag="<PregTermAbortionPerNum MV2>", offset=2)
+  num.raw = vals
+  pct.raw = vals
+  num.raw[unit==1] = NA
+  pct.raw[unit==0] = NA
+  dat = cbind(c("Number", "Percent"), rbind(data.frame(num.raw), data.frame(pct.raw)))
+  colnames(dat) = c("Unit", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Unit"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+    dat = dat[is.finite(dat$Value),] # Remove "NA" values
+  }
+  return(dat)
 }
 

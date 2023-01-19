@@ -37,7 +37,7 @@ sex and year in long or wide format
   percentages. These units can vary from year to year. When
   \code{direction="wide"}, the return value will include rows for numbers and
   for percentages, with percentages missing in years where numbers were
-  entered or vice-versa. When \code{direction="long"}, the data frame will only
-  include rows for whichever unit was entered into Spectrum in any year.
+  entered or vice-versa. When \code{direction="long"}, the data frame will
+  include data for numbers or percentages, but not both, for any year.
 }
 
