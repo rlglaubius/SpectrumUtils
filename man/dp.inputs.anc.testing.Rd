@@ -36,13 +36,18 @@ Spectrum users may enter validation data on HIV testing at ANC in their
 Spectrum files. These consist of:
 
 \enumerate{
-\item{First ANC visits - number of women with a first ANC visit during their current pregnancy}
-\item{Tested - number of women who received at least one HIV test at ANC}
-\item{Tested HIV+ - number of women who tested HIV+ at the first test of their current pregnancy}
-\item{Known HIV+ - number of women whose HIV-positive status was known at their first ANC visit}
-\item{ANC HIV\% - HIV prevalence at ANC. Calculated as (Tested HIV+ + Known HIV+) / (Tested + Known HIV+)}
-  \item{Retested - number of women who were tested for HIV at least once after their first HIV test during their current pregnancy}
-  \item{Retested HIV+ - number of women who tested HIV+ during retesting}
+\item{Program reported births: Live births reported to the national program}
+\item{First ANC visits: number of women with a first ANC visit during their current pregnancy}
+\item{Tested: number of women who received at least one HIV test at ANC}
+\item{Tested HIV+: number of women who tested HIV+ at the first test of their current pregnancy}
+\item{Known HIV+: number of women whose HIV-positive status was known at their first ANC visit}
+\item{Known HIV-: number of women whose HIV-negative status was known at their first ANC visit}
+\item{ANC HIV\%: HIV prevalence at ANC. Calculated as (Tested HIV+ + Known HIV+) / (Tested + Known HIV+)}
+\item{Retested: number of women who were tested for HIV at least once after their first HIV test during their current pregnancy}
+\item{Retested HIV+: number of women who tested HIV+ during retesting}
 }
+
+Some of these data were not collected in earlier versions of Spectrum and are
+not available in projections last saved in those versions.
 }
 

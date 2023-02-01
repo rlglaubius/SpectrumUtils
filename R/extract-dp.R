@@ -450,31 +450,49 @@ dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, fina
 #' Spectrum files. These consist of:
 #'
 #' \enumerate{
-#' \item{First ANC visits - number of women with a first ANC visit during their current pregnancy}
-#' \item{Tested - number of women who received at least one HIV test at ANC}
-#' \item{Tested HIV+ - number of women who tested HIV+ at the first test of their current pregnancy}
-#' \item{Known HIV+ - number of women whose HIV-positive status was known at their first ANC visit}
-#' \item{ANC HIV\% - HIV prevalence at ANC. Calculated as (Tested HIV+ + Known HIV+) / (Tested + Known HIV+)}
-#'   \item{Retested - number of women who were tested for HIV at least once after their first HIV test during their current pregnancy}
-#'   \item{Retested HIV+ - number of women who tested HIV+ during retesting}
+#' \item{Program reported births: Live births reported to the national program}
+#' \item{First ANC visits: number of women with a first ANC visit during their current pregnancy}
+#' \item{Tested: number of women who received at least one HIV test at ANC}
+#' \item{Tested HIV+: number of women who tested HIV+ at the first test of their current pregnancy}
+#' \item{Known HIV+: number of women whose HIV-positive status was known at their first ANC visit}
+#' \item{Known HIV-: number of women whose HIV-negative status was known at their first ANC visit}
+#' \item{ANC HIV\%: HIV prevalence at ANC. Calculated as (Tested HIV+ + Known HIV+) / (Tested + Known HIV+)}
+#' \item{Retested: number of women who were tested for HIV at least once after their first HIV test during their current pregnancy}
+#' \item{Retested HIV+: number of women who tested HIV+ during retesting}
 #' }
+#'
+#' Some of these data were not collected in earlier versions of Spectrum and are
+#' not available in projections last saved in those versions.
 #'
 #' @export
 dp.inputs.anc.testing = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
-  rnames = c("First ANC visits", "Tested", "Tested HIV+", "ANC HIV%", "Known HIV+", "Retested", "Retested HIV+")
-  fmt = list(cast=as.numeric, offset=2, nrow=7, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<ANCTestingValues MV2>", fmt)
-  raw[raw == dp_not_avail] = NA
-  dat = cbind(rnames, data.frame(raw))
+  ## Note: versions 1 and 3 currently are not supported by this package
+  tag_v2 = "<ANCTestingValues MV2>"
+  tag_v4 = "<ANCTestingValues MV4>"
+  if (tag_v2 %in% dp.raw$Tag) {
+    rnames = c("First ANC visits", "Tested", "Tested HIV+", "Known HIV+", "ANC HIV%", "Retested", "Retested HIV+")
+    dat = dp.inputs.anc.testing.helper(dp.raw, tag_v2, rnames, first.year, final.year)
+  } else {
+    rnames = c("First ANC visits", "Tested", "Tested HIV+", "Known HIV+", "ANC HIV%", "Retested", "Retested HIV+", "Program births", "Known HIV-")
+    dat = dp.inputs.anc.testing.helper(dp.raw, tag_v4, rnames, first.year, final.year)
+  }
+
   colnames(dat) = c("Indicator", sprintf("%d", first.year:final.year))
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars="Indicator", variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
+}
+
+dp.inputs.anc.testing.helper = function(dp.raw, tag, rnames, first.year, final.year) {
+  fmt = list(cast=as.numeric, offset=2, nrow=length(rnames), ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, tag, fmt)
+  raw[raw == dp_not_avail] = NA
+  dat = cbind(rnames, data.frame(raw))
 }
 
 #' Get the source indicated for number who know their HIV+ status
