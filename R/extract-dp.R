@@ -34,31 +34,27 @@ dp.extract.time.series = function(dp.raw, direction="wide", first.year, final.ye
   return(dat)
 }
 
-#' Get the first year of a Spectrum projection
+#' Spectrum projection time span
+#'
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
 #' @param direction Ignored; included for compatibility with similar functions.
-#' @return the first year of the projection.
+#' @return the requested year
+#' @describeIn dp.inputs.first.year First year of the projection
 #' @export
 dp.inputs.first.year = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   return(extract.dp.tag(dp.raw, "<FirstYear MV2>", fmt)[1,1])
 }
 
-#' Get the final year of a Spectrum projection
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
-#' @return the final year of the projection.
+#' @describeIn dp.inputs.first.year Final year of the projection
 #' @export
 dp.inputs.final.year = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   return(extract.dp.tag(dp.raw, "<FinalYear MV2>", fmt)[1,1])
 }
 
-#' Get the input total fertility rate
-#'
-#' Get the input total fertility rate (TFR).
+#' Spectrum demographic inputs
 #' @param dp.raw DemProj module data in raw format, as returned by
 #'   \code{read.raw.dp()}
 #' @param direction Request "wide" (default) or "long" format data.
@@ -67,24 +63,14 @@ dp.inputs.final.year = function(dp.raw, direction="wide") {
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{dp.inputs.final.year()}
 #' @return A data frame.
+#' @describeIn dp.inputs.tfr Total fertility rate by year.
 #' @export
 dp.inputs.tfr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<TFR MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
-#' Get the input proportional age-specific fertility rates
-#'
-#' Get the input proportional age-specific fertility rates (PASFRs). These are
-#' specified as percentages between 0 and 100
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Proportionate age-specific fertility rates, specified as percentages (0 <= x <= 100).
 #' @export
 dp.inputs.pasfr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -101,17 +87,7 @@ dp.inputs.pasfr = function(dp.raw, direction="wide", first.year=NULL, final.year
   return(dat)
 }
 
-#' Get overall numbers of net migrants
-#'
-#' Get input overall numbers of net migrants by sex and year.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Net numbers of migrants by sex and year.
 #' @export
 dp.inputs.migr.rate = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -127,19 +103,9 @@ dp.inputs.migr.rate = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
-#' Get the age distribution of net migrants
-#'
-#' Get the age distribution of net migrants by sex and year. These are
-#' normalized to sum to 100; negative values indicate net flows of migrants that
-#' are in the opposite direction of overall net migration.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Age distribution of net migrants by sex and year,
+#'   normalized to sum to 100. Negative values indicate net flows of migrants
+#'   that are in the opposite direction of overall net migration.
 #' @export
 dp.inputs.migr.dist = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -157,18 +123,8 @@ dp.inputs.migr.dist = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
-#' Get the input sex ratio at birth
-#'
-#' Get the input sex ratio at birth (SRB). This is specified as the number of
-#' male births per 100 female births.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Sex ratio at birth, expressed as the number of male
+#'   births per 100 female births.
 #' @export
 dp.inputs.srb = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<SexBirthRatio MV>"
@@ -213,19 +169,9 @@ dp.inputs.life.table = function(dp.raw, direction="wide") {
   return(factor(opt, levels=1:11, labels=strata.labels$life.table))
 }
 
-#' Get input survival rates
-#'
-#' Get input survival rates (Sx) by age, sex, and year. This is expressed as
-#' the proportion of people alive and age x at the start of the year who are
-#' still alive at the end of that year
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Survival rates (Sx) by age, sex, and year. This is
+#'   expressed as the proportion of people alive and age x at the start of the
+#'   year who are still alive at the end of that year.
 #' @export
 dp.inputs.surv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -244,17 +190,7 @@ dp.inputs.surv = function(dp.raw, direction="wide", first.year=NULL, final.year=
   return(dat)
 }
 
-#' Get the input life expectancy at birth
-#'
-#' Get the input life expectancy at birth (e0) by year and sex.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
-#' @return A data frame.
+#' @describeIn dp.inputs.tfr Input life expectancy at birth (e0) by year and sex.
 #' @export
 dp.inputs.e0 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -279,13 +215,7 @@ dp.inputs.e0 = function(dp.raw, direction="wide", first.year=NULL, final.year=NU
 #' World Population Prospects revision. These may differ from the user-editable
 #' life expectancy used in Spectrum calculation, which can be accessed using
 #' \code{dp.inputs.e0}.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.e0.default = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -310,13 +240,7 @@ dp.inputs.e0.default = function(dp.raw, direction="wide", first.year=NULL, final
 #' and year that can be used to align Spectrum population outputs with a
 #' reference population projection. \code{dp.inputs.external.pop} returns those
 #' population targets in long or wide format.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @section Details:
 #'
@@ -384,13 +308,7 @@ dp.inputs.use.external.pop = function(dp.raw, direction="wide") {
 }
 
 #' Get the national population entered in a subnational projection
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return population sizes by year.
 #' @section Details:
 #'
@@ -409,13 +327,7 @@ dp.inputs.pop.country = function(dp.raw, direction="wide", first.year=NULL, fina
 }
 
 #' Get the percentage of the national population living in a subnational region
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return population sizes by year.
 #' @section Details:
 #'
@@ -436,13 +348,7 @@ dp.inputs.pop.percent = function(dp.raw, direction="wide", first.year=NULL, fina
 #' Get data on HIV testing during antenatal care
 #'
 #' Extract Spectrum inputs on antenatal clinic (ANC) attendance and HIV testing
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return a data frame.
 #' @section Details:
 #'
@@ -524,14 +430,7 @@ dp.inputs.kos.source = function(dp.raw, direction="wide") {
 }
 
 #' Get input numbers of people living with HIV who know their HIV+ status
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}. Note that user inputs
-#'   start in 2010, so no inputs are available in earlier years.
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return a data frame of numbers who know their status.
 #' @export
 dp.inputs.kos.data = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -706,13 +605,7 @@ dp.inputs.csavr.irr.options = function(dp.raw, direction="wide") {
 }
 
 #' Get input numbers of overall new HIV diagnoses
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of numbers of new diagnoses
 #' @export
 dp.inputs.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -735,13 +628,7 @@ dp.inputs.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, 
 }
 
 #' Get input numbers of new HIV diagnoses by sex
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of numbers of new diagnoses by sex
 #' @export
 dp.inputs.csavr.diagnoses.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -767,13 +654,7 @@ dp.inputs.csavr.diagnoses.sex = function(dp.raw, direction="wide", first.year=NU
 }
 
 #' Get input numbers of new HIV diagnoses by sex and age
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of numbers of new diagnoses by age and sex
 #' @export
 dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -799,13 +680,7 @@ dp.inputs.csavr.diagnoses.sex.age = function(dp.raw, direction="wide", first.yea
 }
 
 #' Get input numbers of new HIV diagnoses by CD4 category
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of numbers of new diagnoses by CD4 cell category
 #' @export
 dp.inputs.csavr.diagnoses.cd4 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -828,13 +703,7 @@ dp.inputs.csavr.diagnoses.cd4 = function(dp.raw, direction="wide", first.year=NU
 }
 
 #' Get input numbers of HIV-related deaths overall
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of input numbers of HIV-related deaths
 #' @export
 dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -857,13 +726,7 @@ dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, fin
 }
 
 #' Get input numbers of HIV-related deaths by sex
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of input numbers of HIV-related deaths by sex
 #' @export
 dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -889,13 +752,7 @@ dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL,
 }
 
 #' Get input numbers of HIV-related deaths by sex and age
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame of input numbers of HIV-related deaths by age and sex
 #' @export
 dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -924,13 +781,7 @@ dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=N
 #'
 #' Get input numbers of new diagnoses among in-migrants entered into CSAVR by
 #' sex, age, and year
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#' will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame
 #' @export
 dp.inputs.csavr.migr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -958,13 +809,7 @@ dp.inputs.csavr.migr.diagnoses = function(dp.raw, direction="wide", first.year=N
 #'
 #' Get input numbers of in-migrants living with HIV entered by sex, age, and
 #' year
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame
 #' @export
 dp.inputs.migr.plhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1060,13 +905,7 @@ dp.inputs.adult.hiv.mortality.art.scale = function(dp.raw, direction="wide") {
 #' Get Spectrum's calculated number of births
 #'
 #' Get Spectrum's calculated number of births by year in long or wide format.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.births = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1078,13 +917,7 @@ dp.output.births = function(dp.raw, direction="wide", first.year=NULL, final.yea
 #'
 #' Get Spectrum's calculated population by age, sex, and year in long or wide
 #' format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @section Details:
 #'
@@ -1118,13 +951,7 @@ dp.output.bigpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
 
 #' Get Spectrum's calculated infant mortality rate
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.imr = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1146,13 +973,7 @@ dp.output.imr = function(dp.raw, direction="wide", first.year=NULL, final.year=N
 #'
 #' Get Spectrum's calculated HIV-positive population by age, sex, and year in long or wide
 #' format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.hivpop = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1178,13 +999,7 @@ dp.output.hivpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
 #'
 #' Get Spectrum's calculated HIV-positive population on ART by age, sex, and year in long or wide
 #' format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1210,13 +1025,7 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
 #' Get Spectrum's calculated number in need of ART
 #'
 #' Get Spectrum's calculated number in need of ART by year, sex, and five-year age group
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.art.need = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1245,13 +1054,7 @@ dp.output.art.need = function(dp.raw, direction="wide", first.year=NULL, final.y
 #'
 #' Get Spectrum's calculated new HIV infections by age, sex, and year in long or
 #' wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.incident.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1277,13 +1080,7 @@ dp.output.incident.hiv = function(dp.raw, direction="wide", first.year=NULL, fin
 #'
 #' Get Spectrum's calculated HIV-related deaths by age, sex, and year in long or
 #' wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1309,13 +1106,7 @@ dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final
 #'
 #' Get Spectrum's calculated HIV-related deaths among PLHIV onART by age, sex,
 #' and year in long or wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.deaths.art = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1345,13 +1136,7 @@ dp.output.deaths.art = function(dp.raw, direction="wide", first.year=NULL, final
 #'
 #' Get Spectrum's calculated HIV-unrelated deaths by age, sex, and year in long or
 #' wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1376,13 +1161,7 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
 #' Get inputs saved for EPP
 #'
 #' Get the percentage of adults on ART who are age 50 or older.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.output.art.50plus = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1405,13 +1184,7 @@ dp.output.art.50plus = function(dp.raw, direction="wide", first.year=NULL, final
 #'
 #' Get input numbers or percentages of adults on ART entered into Spectrum by
 #' sex and year in long or wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @section Details:
 #'
@@ -1460,13 +1233,7 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
 
 #' Get the input percentage of adults on ART who are lost to follow-up annually
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1476,13 +1243,7 @@ dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, f
 
 #' Get the input percentage of children on ART who are lost to follow-up annually
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1495,13 +1256,7 @@ dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, f
 #' Get input numbers or percentages of children on antiretroviral therapy (ART)
 #' or cotrimoxazole (CTX) prophylaxis entered into Spectrum by year and age in
 #' long or wide format
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @section Details:
 #'
@@ -1552,13 +1307,7 @@ dp.inputs.child.art = function(dp.raw, direction="wide", first.year=NULL, final.
 
 #' Get input numbers of adults initiating ART
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.adult.art.initiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1579,13 +1328,7 @@ dp.inputs.adult.art.initiations = function(dp.raw, direction="wide", first.year=
 
 #' Get input numbers of adults who re-initiated ART
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.adult.art.reinitiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1595,13 +1338,7 @@ dp.inputs.adult.art.reinitiations = function(dp.raw, direction="wide", first.yea
 
 #' Get input numbers of children initiating ART
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.child.art.initiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1611,13 +1348,7 @@ dp.inputs.child.art.initiations = function(dp.raw, direction="wide", first.year=
 
 #' Get input numbers of children who re-initiated ART
 #'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.child.art.reinitiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1631,13 +1362,7 @@ dp.inputs.child.art.reinitiations = function(dp.raw, direction="wide", first.yea
 #' in long or wide format. These data may be entered by five-year age group, or
 #' in age groups specified for UNAIDS Global AIDS Monitoring. The latter
 #' stratifies ages 25+ into two age groups, 25-49 and 50+.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.art.by.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1681,13 +1406,7 @@ dp.inputs.art.by.age = function(dp.raw, direction="wide", first.year=NULL, final
 #'
 #' Get the input HIV incidence trend. This may pertain to either the 15-49 or
 #' 15+ adult age group.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1805,13 +1524,7 @@ dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
 #' Get Spectrum input HIV incidence rate ratios by sex
 #'
 #' Get the input ratio of female to male incidence.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1823,13 +1536,7 @@ dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.ye
 #'
 #' Get the input rate ratios of incidence by age relative to ages 25-29,
 #' stratified by sex.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -1870,13 +1577,7 @@ dp.inputs.hiv.frr.location = function(dp.raw, direction="wide", first.year=NULL,
 #'
 #' Get HIV-related fertility adjustments by age and year for women with
 #' untreated HIV
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.hiv.frr.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -2141,13 +1842,7 @@ dp.inputs.survey.art.coverage = function(dp.raw, direction="wide") {
 #'
 #' Get COVID-19 deaths inputs to DemProj. This includes values for every year of
 #' the projection, not just 2019 and later.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.covid19.deaths = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -2169,13 +1864,7 @@ dp.inputs.covid19.deaths = function(dp.raw, direction="wide", first.year=NULL, f
 #'
 #' Get the input age distribution of COVID-19 deaths. This includes values for
 #' every year of the projection, not just 2019 and later.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
 dp.inputs.covid19.pattern = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
@@ -2276,13 +1965,7 @@ dp.inputs.adult.hiv.mortality.art.custom = function(dp.raw, direction="wide") {
 #'
 #' Get input data on the number of pregnancies among HIV-positive women
 #' terminated by abortion
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{dp.inputs.final.year()}
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @section Details:
 #'

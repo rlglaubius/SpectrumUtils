@@ -2,9 +2,47 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.tfr}
 \alias{dp.inputs.tfr}
-\title{Get the input total fertility rate}
+\alias{dp.inputs.pasfr}
+\alias{dp.inputs.migr.rate}
+\alias{dp.inputs.migr.dist}
+\alias{dp.inputs.srb}
+\alias{dp.inputs.surv}
+\alias{dp.inputs.e0}
+\title{Spectrum demographic inputs}
 \usage{
 dp.inputs.tfr(dp.raw, direction = "wide", first.year = NULL, final.year = NULL)
+
+dp.inputs.pasfr(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.migr.rate(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.migr.dist(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.srb(dp.raw, direction = "wide", first.year = NULL, final.year = NULL)
+
+dp.inputs.surv(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.e0(dp.raw, direction = "wide", first.year = NULL, final.year = NULL)
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
@@ -22,5 +60,27 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get the input total fertility rate (TFR).
+Spectrum demographic inputs
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.tfr()}: Total fertility rate by year.
+
+\item \code{dp.inputs.pasfr()}: Proportionate age-specific fertility rates, specified as percentages (0 <= x <= 100).
+
+\item \code{dp.inputs.migr.rate()}: Net numbers of migrants by sex and year.
+
+\item \code{dp.inputs.migr.dist()}: Age distribution of net migrants by sex and year,
+normalized to sum to 100. Negative values indicate net flows of migrants
+that are in the opposite direction of overall net migration.
+
+\item \code{dp.inputs.srb()}: Sex ratio at birth, expressed as the number of male
+births per 100 female births.
+
+\item \code{dp.inputs.surv()}: Survival rates (Sx) by age, sex, and year. This is
+expressed as the proportion of people alive and age x at the start of the
+year who are still alive at the end of that year.
+
+\item \code{dp.inputs.e0()}: Input life expectancy at birth (e0) by year and sex.
+
+}}
