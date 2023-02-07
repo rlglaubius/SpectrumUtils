@@ -1373,6 +1373,34 @@ dp.output.deaths.nonhiv = function(dp.raw, direction="wide", first.year=NULL, fi
   return(dat)
 }
 
+#' Get inputs saved for EPP
+#'
+#' Get the percentage of adults on ART who are age 50 or older.
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{dp.inputs.final.year()}
+#' @return A data frame.
+#' @export
+dp.output.art.50plus = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=length(strata.labels$sex.aug), ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<PercART50Plus MV>", fmt)
+  dat = cbind(strata.labels$sex.aug, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get Spectrum adult ART inputs
 #'
 #' Get input numbers or percentages of adults on ART entered into Spectrum by
