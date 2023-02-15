@@ -278,9 +278,7 @@ dp.inputs.external.pop = function(dp.raw, direction="wide", first.year=NULL, fin
 #' and year that can be used to align Spectrum population outputs with a
 #' reference population projection. \code{dp.inputs.use.external.pop} indicates
 #' whether this mechanism was used.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored
+#' @inheritParams dp.inputs.first.year
 #' @return A list with two elements. Element \code{use.external.pop} is TRUE if
 #' an external population was used, FALSE otherwise. Element \code{final.year}
 #' specifies the final year of adjustments.
@@ -402,9 +400,7 @@ dp.inputs.anc.testing.helper = function(dp.raw, tag, rnames, first.year, final.y
 }
 
 #' Get the source indicated for number who know their HIV+ status
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return The knowledge of status (KoS) source as a factor (see "Details" below
 #'   for factor levels)
 #' @section Details:
@@ -459,9 +455,7 @@ dp.inputs.kos.data = function(dp.raw, direction="wide", first.year=NULL, final.y
 }
 
 #' Get the model used to estimate incidence in a Spectrum projection
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return The incidence model name as a factor (see "Details" below for factor levels)
 #' @section Details:
 #'
@@ -483,6 +477,16 @@ dp.inputs.incidence.model = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   opt = extract.dp.tag(dp.raw, "<IncidenceOptions MV>", fmt)[1,1]
   return(factor(opt, levels=0:5, labels=strata.labels$incidence.model))
+}
+
+#' Get the first year of HIV incidence estimated by EPP
+#' @inheritParams dp.inputs.first.year
+#' @return an integer-valued year
+#' @export
+dp.inputs.epp.epidemic.first.year = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  val = extract.dp.tag(dp.raw, "<FirstYearOfEpidemic MV>", fmt)[1,1]
+  return(as.integer(val))
 }
 
 #' Get the initial distribution of newly-infected adults by CD4 cell count category
@@ -513,9 +517,7 @@ dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
 }
 
 #' Get the model used to estimate incidence in CSAVR
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return The incidence model name as a factor (see "Details" below for factor
 #'   levels)
 #' @section Details:
@@ -580,9 +582,7 @@ dp.inputs.csavr.data.options = function(dp.raw, direction="wide") {
 }
 
 #' Check if incidence rate ratios (IRRs) by sex or age were estimated while fitting CSAVR
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return A data frame of TRUE/FALSE variables indicating whether IRR fitting by sex or
 #' age was enabled. These options are selected separately for each CSAVR incidence model.
 #' @section Limitations:
@@ -1443,9 +1443,7 @@ dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.
 #' estimate, subject to a user-specified maximum allowed adjustment. This
 #' function returns that maximum. The minimum adjustment is equal to the reciprocal
 #' of the maximum.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return the maximum allowed adjustment.
 #' @export
 dp.inputs.epp.adjustment.cap = function(dp.raw, direction="wide") {
@@ -1454,10 +1452,7 @@ dp.inputs.epp.adjustment.cap = function(dp.raw, direction="wide") {
 }
 
 #' Check if AIM is allowed to adjust HIV incidence from EPP
-#'
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return TRUE if adjustments is allowed, FALSE otherwise
 #' @section Details:
 #'
@@ -1472,9 +1467,7 @@ dp.inputs.epp.adjustment.enabled = function(dp.raw, direction="wide") {
 }
 
 #' Check if Spectrum used custom incidence rate ratios by age or sex
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return TRUE if custom incidence rate ratios were used, FALSE otherwise
 #' @export
 dp.inputs.irr.custom = function(dp.raw, direction="wide") {
@@ -1483,9 +1476,7 @@ dp.inputs.irr.custom = function(dp.raw, direction="wide") {
 }
 
 #' Check if Spectrum used incidence rate ratios by sex estimated by EPP
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return TRUE if sex ratios from EPP were selected, FALSE otherwise
 #' @export
 dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
@@ -1494,9 +1485,7 @@ dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
 }
 
 #' Check which epidemic pattern is used to specify incidence rate ratios
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return the epidemic pattern name as a factor (see "Details" below for factor levels)
 #' @section Details:
 #'
@@ -1889,9 +1878,7 @@ dp.inputs.covid19.pattern = function(dp.raw, direction="wide", first.year=NULL, 
 #'
 #' Countries can toggle entry of COVID-19 deaths as a configuration option. This
 #' function checks whether that toggle is turned on.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return TRUE if the toggle is enabled, FALSE otherwise.
 #' @export
 dp.inputs.covid19.enabled = function(dp.raw, direction="wide") {
@@ -1902,9 +1889,7 @@ dp.inputs.covid19.enabled = function(dp.raw, direction="wide") {
 #' AIM advanced options regional configuration
 #'
 #' Get the region selected for advanced options parameter values in Spectrum
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return The region name as a factor (see "Details" below for factor levels)
 #' @describeIn dp.inputs.adult.hiv.mortality.region Mortality rates among HIV+ adults not on ART
 #' @section Details:
@@ -1941,9 +1926,7 @@ dp.inputs.adult.hiv.mortality.art.region = function(dp.raw, direction="wide") {
 #' AIM advanced option configuration
 #'
 #' Check if advanced options in AIM are unlocked for customization.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Ignored; included for compatibility with similar functions.
+#' @inheritParams dp.inputs.first.year
 #' @return TRUE if the parameter is unlocked for configuration, FALSE otherwise.
 #' @describeIn dp.inputs.adult.hiv.mortality.custom Mortality rates among HIV+ adults not on ART
 #' @export
