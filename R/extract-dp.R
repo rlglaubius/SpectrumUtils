@@ -1231,6 +1231,35 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
   return(subset(dat, Sex != "Male+Female"))
 }
 
+#' Get input PMTCT use
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.inputs.pmtct = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  inc = c(2:15, 18:21) # include these rows; exclude "none", "total", and monthly dropout rows
+  fmt = list(cast=as.numeric, offset=2, nrow=26, ncol=final.year - first.year + 2)
+  raw = extract.dp.tag(dp.raw, "<ARVRegimen MV3>", fmt)
+  raw = raw[inc,2:ncol(raw)] # drop percent/number column
+  colnames(raw) = first.year:final.year
+
+  preg_names = expand.grid(Timing  = strata.labels$pmtct_time[1],
+                           Unit    = c("Number", "Percent"),
+                           Regimen = strata.labels$pmtct_regimen)
+  post_names = expand.grid(Timing  = strata.labels$pmtct_time[2],
+                           Unit    = c("Number", "Percent"),
+                           Regimen = strata.labels$pmtct_regimen[c(3,4)])
+  dat = cbind(rbind(preg_names, post_names), data.frame(raw, check.names=FALSE))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Timing", "Unit", "Regimen"), value.name="Value", variable.name="Year")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the input percentage of adults on ART who are lost to follow-up annually
 #'
 #' @inheritParams dp.inputs.tfr
