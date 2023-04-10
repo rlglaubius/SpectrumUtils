@@ -479,6 +479,16 @@ dp.inputs.incidence.model = function(dp.raw, direction="wide") {
   return(factor(opt, levels=0:5, labels=strata.labels$incidence.model))
 }
 
+#' Get the epidemic type specified in EPP
+#' @inheritParams dp.inputs.first.year
+#' @return "GENERALIZED" or "CONCENTRATED"
+#' @export
+dp.inputs.epp.epidemic.type = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.character, offset=2, nrow=1, ncol=1)
+  val = extract.dp.tag(dp.raw, "<EpidemicTypeFromEPP MV>", fmt)[1,1]
+  return(val)
+}
+
 #' Get the first year of HIV incidence estimated by EPP
 #' @inheritParams dp.inputs.first.year
 #' @return an integer-valued year
@@ -1048,6 +1058,15 @@ dp.output.art.need = function(dp.raw, direction="wide", first.year=NULL, final.y
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
+}
+
+#'Get Spectrum's estimated need for PMTCT services
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame
+#' @export
+dp.output.pmtct.need = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ChildNeedPMTCT MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get Spectrum's calculated new HIV infections
