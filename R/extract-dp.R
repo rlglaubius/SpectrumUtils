@@ -34,6 +34,16 @@ dp.extract.time.series = function(dp.raw, direction="wide", first.year, final.ye
   return(dat)
 }
 
+#' Check whether the projection was valid when last saved
+#'
+#' @inheritParams dp.inputs.first.year
+#' @return TRUE if the projection was valid, FALSE otherwise
+#' @export
+dp.status.projection.valid = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<ProjectionValid MV2>", fmt)[1,1] == 1)
+}
+
 #' Spectrum projection time span
 #'
 #' @param dp.raw DemProj module data in raw format, as returned by
