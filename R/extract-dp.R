@@ -443,13 +443,21 @@ dp.inputs.kos.data = function(dp.raw, direction="wide", first.year=NULL, final.y
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
-  first.year = max(first.year, 2010) # input editor starts in 2010 if the project starts earlier
+  tag_v3 = "<KnowledgeOfStatusInput MV3>"
+  tag_v4 = "<KnowledgeOfStatusInput MV4>"
+  if (length(grep(tag_v3, dp.raw$Tag)) > 0) {
+    ## V3 tag only stored values from 2010 onward
+    first.year = max(first.year, 2010) # input editor starts in 2010 if the project starts earlier
+    fmt = list(cast=as.numeric, offset=2, nrow=3, ncol=final.year - first.year + 2)
+    raw = extract.dp.tag(dp.raw, tag_v3, fmt)
+    raw = raw[,2:ncol(raw)] # first column of KoS inputs is intentionally blank in .DP
+  } else {
+    ## V4 tag stores values for all years and does not have a blank first column
+    fmt = list(cast=as.numeric, offset=2, nrow=3, ncol=final.year - first.year + 2)
+    raw = extract.dp.tag(dp.raw, tag_v4, fmt)
+  }
 
-  fmt = list(cast=as.numeric, offset=2, nrow=3, ncol=final.year - first.year + 2)
-  raw = extract.dp.tag(dp.raw, "<KnowledgeOfStatusInput MV3>", fmt)
-  raw = raw[,2:ncol(raw)] # first column of KoS inputs is intentionally blank in .DP
   raw[raw==dp_not_avail] = NA
-
   yrs = sprintf("%d", first.year:final.year)
   dat = cbind(c("Children 0-14", "Males 15+", "Females 15+"), data.frame(raw))
   colnames(dat) = c("Population", yrs)
@@ -459,7 +467,7 @@ dp.inputs.kos.data = function(dp.raw, direction="wide", first.year=NULL, final.y
                          measure.vars=yrs,
                          variable.name="Year",
                          value.name="Value")
-    dat$Year = first.year:final.year
+    dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
 }
@@ -1258,6 +1266,41 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
   ## Drop Male+Female values because these are calculated by Spectrum, and only
   ## for years when inputs are entered as numbers
   return(subset(dat, Sex != "Male+Female"))
+}
+
+#' Get input factor used to adjust numbers of adults on ART for over/undercount
+#'
+#' Get input factor used to adjust numbers of adults on ART for over/undercount (new in 2022)
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.inputs.adult.art.adjustment.value = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=3, nrow=2, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<AdultARTAdjFactor>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Check whether adult ART inputs were adjusted
+#'
+#' @inheritParams dp.inputs.first.year
+#' @return TRUE if adult ART inputs were adjusted, FALSE otherwise
+#' @section Details:
+#'
+#'   The magnitude of adjustments made to ART inputs can be accessed using
+#'   \code{dp.inputs.adult.art.adjustment.value}.
+#'
+#' @export
+dp.inputs.adult.art.adjustment.flag = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<AdultARTAdjFactorFlag>", fmt)[1,1] == 1)
 }
 
 #' Get input PMTCT use
