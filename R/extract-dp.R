@@ -930,6 +930,18 @@ dp.inputs.adult.hiv.mortality.art.scale = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<MortalityRatesMultiplier MV>", fmt)[1,1])
 }
 
+#' Get the effect of ART on HIV transmission
+#'
+#' Return the reduction in HIV transmission on ART. Spectrum does not use this
+#' in its calculations, but passes it to EPP for use in incidence estimation.
+#' @inheritParams dp.inputs.first.year
+#' @return a number
+#' @export
+dp.inputs.art.transmission.reduction = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<AdultInfectReduc MV>", fmt)[1,1])
+}
+
 #' Get Spectrum's calculated number of births
 #'
 #' Get Spectrum's calculated number of births by year in long or wide format.
@@ -1926,6 +1938,15 @@ dp.inputs.survey.art.coverage = function(dp.raw, direction="wide") {
   }
 
   return(dat)
+}
+
+#' Get all-cause deaths among adult PLHIV on ART
+#'
+#' @inheritParams dp.inputs.tfr
+#' @export
+dp.inputs.deaths.art.allcause = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<AllCauseDeathsARTValidation MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get COVID-19 deaths inputs
