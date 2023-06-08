@@ -10,6 +10,7 @@ strata.labels = list(
   age.csavr = c("15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50+"),
   cd4.adult = c("CD4>500", "CD4 350-500", "CD4 250-349", "CD4 200-249", "CD4 100-199", "CD4 50-99", "CD4<50"),
   cd4.csavr = c("CD4>500", "CD4 350-500", "CD4 200-350", "CD4<200"),
+  art.status = c("no ART", "ART"),
   life.table = c("Coale-Demeny West", "Coale-Demeny North", "Coale-Demeny East", "Coale-Demeny South", "UN General", "UN Latin America", "UN Chile", "UN South Asia", "UN East Asia", "Country-specific", "Custom"),
   pmtct_time    = c("Prenatal", "Postnatal"),
   pmtct_regimen = c("Single dose NVP", "Dual ARV", "Option A", "Option B", "ART started before current pregnancy", "ART started during current pregnancy at least 4 weeks before delivery", "ART started during current pregnancy < 4 weeks before delivery"),

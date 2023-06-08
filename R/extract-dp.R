@@ -1229,6 +1229,69 @@ dp.output.art.50plus = function(dp.raw, direction="wide", first.year=NULL, final
   return(dat)
 }
 
+#' Get Spectrum's estimate of adult PLHIV by CD4 category
+#'
+#' Get the estimate number of adults by CD4 category and ART status
+#' @describeIn dp.output.cd4.15_up Adults age 15+
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.output.cd4.15_up = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ## CD4 outputs are organized in two blocks, one off ART the other on ART.
+  ## Blocks have rows by sex (including both) and CD4 (including HIV-negative).
+  ## Blocks are separated by a blank line.
+  ndat = length(strata.labels$sex.aug) * (length(strata.labels$cd4.adult) + 1)
+  nrow = 2 * ndat + 1
+  fmt = list(cast=as.numeric, offset=2, nrow=nrow, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CD4Distribution MV2>", fmt)
+  raw = rbind(raw[1:ndat,], raw[1:ndat + ndat + 1,])
+  dat = cbind(expand.grid(CD4=c("HIV-", strata.labels$cd4.adult),
+                          Sex=strata.labels$sex.aug,
+                          ART=strata.labels$art.status),
+              data.frame(raw))
+  colnames(dat) = c("CD4", "Sex", "ART", sprintf("%d", first.year:final.year))
+  dat = dat[dat$CD4 != "HIV-",] # drop rows for HIV-negative people
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "CD4", "ART"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+#' @describeIn dp.output.cd4.15_up Adults age 15-49
+#' @export
+dp.output.cd4.15_49 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ## CD4 outputs are organized in two blocks, one off ART the other on ART.
+  ## Blocks have rows by sex (including both) and CD4 (including HIV-negative).
+  ## Blocks are separated by a blank line.
+  ndat = length(strata.labels$sex.aug) * (length(strata.labels$cd4.adult) + 1)
+  nrow = 2 * ndat + 1
+  fmt = list(cast=as.numeric, offset=2, nrow=nrow, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<CD4Distribution15_49 MV2>", fmt)
+  raw = rbind(raw[1:ndat,], raw[1:ndat + ndat + 1,])
+  dat = cbind(expand.grid(CD4=c("HIV-", strata.labels$cd4.adult),
+                          Sex=strata.labels$sex.aug,
+                          ART=strata.labels$art.status),
+              data.frame(raw))
+  colnames(dat) = c("CD4", "Sex", "ART", sprintf("%d", first.year:final.year))
+  dat = dat[dat$CD4 != "HIV-",] # drop rows for HIV-negative people
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "CD4", "ART"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
 #' Get Spectrum adult ART inputs
 #'
 #' Get input numbers or percentages of adults on ART entered into Spectrum by
