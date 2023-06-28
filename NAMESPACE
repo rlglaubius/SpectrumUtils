@@ -3,6 +3,7 @@
 export(dp.inputs.adult.art)
 export(dp.inputs.adult.art.adjustment.flag)
 export(dp.inputs.adult.art.adjustment.value)
+export(dp.inputs.adult.art.allocation)
 export(dp.inputs.adult.art.initiations)
 export(dp.inputs.adult.art.ltfu)
 export(dp.inputs.adult.art.monthly)

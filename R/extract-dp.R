@@ -1378,6 +1378,32 @@ dp.inputs.adult.art.adjustment.flag = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<AdultARTAdjFactorFlag>", fmt)[1,1] == 1)
 }
 
+#' Check parameters used to determine ART initiation timing
+#'
+#' @inheritParams dp.inputs.first.year
+#' @return A list with named elements 'Method' and 'Weight'
+#' @section Details:
+#'
+#'   Spectrum uses one of four methods to determine how new ART patients are
+#'   drawn from the ART-eligible population by CD4 category:
+#'   \enumerate{
+#'   \item{Method=1: ART initiations are proportional to the expected number of HIV-related deaths in each CD4 category.}
+#'   \item{Method=2: ART initiations are proportional to the number of people in each CD4 category.}
+#'   \item{Method=3: ART initiations are a weighted combination of methods 1 and 2.}
+#'   \item{Method=4: ART initiations are drawn from the lowest CD4 categories first.}
+#'   }
+#'   The return value element "Weight"=(w1, w2) is a two-element vector that
+#'   describes the weight placed on method 1 (w1) and method 2 (w2) when using
+#'   methods 1, 2, or 3. Spectrum ignores these weights when method 4 is used.
+#' @export
+dp.inputs.adult.art.allocation = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  fmt_method = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  fmt_weight = list(cast=as.numeric, offset=2, nrow=1, ncol=2)
+  raw_method = extract.dp.tag(dp.raw, "<NewARTPatAllocationMethod MV2>", fmt_method)[1,1]
+  raw_weight = extract.dp.tag(dp.raw, "<NewARTPatAlloc MV>", fmt_weight)
+  return(list(Method=raw_method, Weight=as.vector(raw_weight)))
+}
+
 #' Get input PMTCT use
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
