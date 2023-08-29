@@ -1404,18 +1404,20 @@ dp.inputs.adult.art.allocation = function(dp.raw, direction="wide", first.year=N
   return(list(Method=raw_method, Weight=as.vector(raw_weight)))
 }
 
-#' Get input PMTCT use
+#' Get PMTCT inputs
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
+#' @describeIn dp.inputs.pmtct Number or percent of women receiving PMTCT by year and regimen
 #' @export
 dp.inputs.pmtct = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
   inc = c(2:15, 18:21) # include these rows; exclude "none", "total", and monthly dropout rows
-  fmt = list(cast=as.numeric, offset=2, nrow=26, ncol=final.year - first.year + 2)
+  fmt = list(cast=I, offset=2, nrow=26, ncol=final.year - first.year + 2)
   raw = extract.dp.tag(dp.raw, "<ARVRegimen MV3>", fmt)
   raw = raw[inc,2:ncol(raw)] # drop percent/number column
+  raw = matrix(as.numeric(raw), nrow=length(inc))
   colnames(raw) = first.year:final.year
 
   preg_names = expand.grid(Timing  = strata.labels$pmtct_time[1],
@@ -1428,6 +1430,54 @@ dp.inputs.pmtct = function(dp.raw, direction="wide", first.year=NULL, final.year
 
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars=c("Timing", "Unit", "Regimen"), value.name="Value", variable.name="Year")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' @describeIn dp.inputs.pmtct Percent retained on ART at delivery among HIV+ pregnant women
+#' @export
+dp.inputs.pmtct.retention.perinatal = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  rnames = c("ART started before current pregnancy", "ART started during current pregnancy")
+
+  fmt = list(cast=as.numeric, offset=2, nrow=2, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<PercentARTDelivery MV>", fmt)
+  dat = cbind(rnames, data.frame(raw))
+  colnames(dat) = c("Timing", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Timing"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' @describeIn dp.inputs.pmtct Percentage of HIV+ breastfeeding mothers who interrupt PMTCT each month
+#' @export
+dp.inputs.pmtct.retention.postnatal = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  inc = 23:26 # rows to include
+  fmt = list(cast=I, offset=2, nrow=26, ncol=final.year - first.year + 2)
+  raw = extract.dp.tag(dp.raw, "<ARVRegimen MV3>", fmt)
+  raw = raw[inc,2:ncol(raw)] # drop percent/number column then convert to numbers
+  raw = matrix(as.numeric(raw), nrow=length(inc))
+
+  reg_names = c(strata.labels$pmtct_regimen[3],
+                strata.labels$pmtct_regimen[4],
+                "ART <12 months after delivery",
+                "ART 12+ months after delivery")
+
+  dat = cbind(reg_names, data.frame(raw, check.names=FALSE))
+  dat$Unit = NULL # Unit column is not needed since all values are reported as percentages
+  colnames(dat) = c("Regimen", first.year:final.year)
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Regimen"), value.name="Value", variable.name="Year")
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)

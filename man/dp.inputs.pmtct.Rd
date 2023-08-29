@@ -2,9 +2,25 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.pmtct}
 \alias{dp.inputs.pmtct}
-\title{Get input PMTCT use}
+\alias{dp.inputs.pmtct.retention.perinatal}
+\alias{dp.inputs.pmtct.retention.postnatal}
+\title{Get PMTCT inputs}
 \usage{
 dp.inputs.pmtct(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.pmtct.retention.perinatal(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.pmtct.retention.postnatal(
   dp.raw,
   direction = "wide",
   first.year = NULL,
@@ -27,5 +43,14 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get input PMTCT use
+Get PMTCT inputs
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.pmtct()}: Number or percent of women receiving PMTCT by year and regimen
+
+\item \code{dp.inputs.pmtct.retention.perinatal()}: Percent retained on ART at delivery among HIV+ pregnant women
+
+\item \code{dp.inputs.pmtct.retention.postnatal()}: Percentage of HIV+ breastfeeding mothers who interrupt PMTCT each month
+
+}}
