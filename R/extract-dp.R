@@ -1925,20 +1925,36 @@ dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
 #'
 #' Get numbers of adults and children tested for viral suppression and numbers
 #' whose test indicated viral suppression by year
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp()}
-#' @param direction Request "wide" (default) or "long" format data.
+#' @inheritParams dp.inputs.tfr
 #' @return A data frame.
+#' @details Some versions of Spectrum only allowed viral suppression data to be
+#'   entered during 2010-2025. Data are not available in earlier or later years
+#'   in files saved with these versions. Spectrum 6.29 and later can save data
+#'   for every year in a projection, though countries may not input anything in
+#'   most years.
 #' @export
-dp.inputs.viral.suppression = function(dp.raw, direction="wide") {
-  fmt = list(cast=as.numeric, offset=2, nrow=9, ncol=2025-2010+2)
-  raw = extract.dp.tag(dp.raw, "<ViralSuppressionInput MV3>", fmt)
+dp.inputs.viral.suppression = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  tag_v3 = "<ViralSuppressionInput MV3>"
+  tag_v4 = "<ViralSuppressionInput MV4>"
+
+  if (tag_v3 %in% dp.raw$Tag) {
+    fmt = list(cast=as.numeric, offset=2, nrow=9, ncol=2025-2010+2)
+    raw = extract.dp.tag(dp.raw, tag_v3, fmt)
+    raw = raw[,2:ncol(raw)] # modvar uses a non-standard first column
+    cnames = c("Indicator", "Population", 2010:2025)
+  } else {
+    fmt = list(cast=as.numeric, offset=2, nrow=9, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v4, fmt)
+    cnames = c("Indicator", "Population", first.year:final.year)
+  }
   raw[raw==dp_not_avail] = NA
-  raw = raw[,2:ncol(raw)] # modvar uses a non-standard first column
   pop = c("Children 0-14", "Males 15+", "Females 15+")
   ind = c("On ART", "Number tested", "Number virally suppressed")
   dat = cbind(expand.grid(ind, pop), data.frame(raw))
-  colnames(dat) = c("Indicator", "Population", 2010:2025)
+  colnames(dat) = cnames
   dat = subset(dat, Indicator != "On ART") # not filled in
   if (direction=="long") {
     dat = reshape2::melt(dat, id.vars=c("Indicator", "Population"), variable.name="Year", value.name="Value")
