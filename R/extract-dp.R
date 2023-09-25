@@ -1292,6 +1292,37 @@ dp.output.cd4.15_49 = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
+#' Get numbers of 14-year-olds living with HIV
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @section Details:
+#'
+#'   Spectrum stores detailed information about 14-year-olds living with HIV.
+#'   This is used by EPP to account for the contribution of mother-to-child HIV
+#'   transmission to HIV prevalence in younger adjults as children living with
+#'   HIV reach adulthood. Data are stratified by sex, CD4 category, ART status,
+#'   and timing of HIV acquisition (perinatal, breastfeeding at 0-6, 6-12, or
+#'   12+ months of life)
+#' @export
+dp.output.child.hiv.14 = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  rlab = expand.grid(
+    HIV=strata.labels$hiv.ped,
+    CD4=strata.labels$cd4.child.old,
+    Sex=strata.labels$sex)
+  fmt = list(cast=as.numeric, offset=2, nrow=nrow(rlab), ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<ChAged14ByCD4Cat MV>", fmt)
+  dat = cbind(rlab, data.frame(raw))
+  colnames(dat) = c("HIV", "CD4", "Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "HIV", "CD4"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get Spectrum adult ART inputs
 #'
 #' Get input numbers or percentages of adults on ART entered into Spectrum by
