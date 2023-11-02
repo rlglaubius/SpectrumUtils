@@ -35,7 +35,7 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get the estimate number of adults by CD4 category and ART status
+Get the estimated number of adults by CD4 category and ART status
 }
 \section{Functions}{
 \itemize{

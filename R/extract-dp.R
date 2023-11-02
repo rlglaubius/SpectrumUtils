@@ -915,15 +915,69 @@ dp.inputs.adult.hiv.mortality.off.art = function(dp.raw, direction="wide") {
   return(dat)
 }
 
-#' Get the HIV-related mortality rate ratio among adults on ART
+#' HIV-related mortality rates among adults on ART
 #'
-#' Get the HIV-related mortality rate ratio among adults on ART. This is a
-#' scalar multiplier applied on top of mortality rate ratio trends by year and
-#' time on ART.
-#' @param dp.raw DemProj module data in raw format, as returned by
-#'   \code{read.raw.dp}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @return the mortality multiplier
+#' HIV-related mortality rate inputs to Spectrum are stratified by age, sex, CD4
+#' category, time on ART, and calendar year. Spectrum users may adjust a
+#' separate on-ART mortality scale factor to calibrate deaths on ART to vital
+#' registration data. Baseline rates by age, sex, CD4 and ART duration are
+#' accessed separately from mortality rate ratios over time and scale factors.
+#' Functions to access each of these are described below.
+#' @inheritParams dp.inputs.tfr
+#' @describeIn dp.inputs.adult.hiv.mortality.art Baseline HIV-related mortality
+#'   rates on ART by sex, age, CD4 category, and time on ART.
+#' @return \code{dp.inputs.adult.hiv.mortality.art} returns a data frame.
+#' @export
+dp.inputs.adult.hiv.mortality.art = function(dp.raw, direction="wide") {
+  n.sex = length(strata.labels$sex)
+  n.age = length(strata.labels$age.cd4.adult)
+  n.cd4 = length(strata.labels$cd4.adult)
+  n.art = length(strata.labels$art.dur)
+
+  tags = c("<AdultMortByCD4WithART0to6 MV2>", "<AdultMortByCD4WithART7to12 MV2>", "<AdultMortByCD4WithARTGt12 MV2>")
+
+  fmt = list(cast=as.numeric, offset=2, nrow=n.sex, ncol=n.age*n.cd4)
+  raw_list = lapply(tags, function(tag) {extract.dp.tag(dp.raw, tag, fmt)})
+  dat_list = lapply(raw_list, function(raw) {
+    dat = cbind(rep(strata.labels$age.cd4.adult, each=n.cd4),
+                rep(strata.labels$cd4.adult, n.age),
+                data.frame(t(raw)))
+    colnames(dat) = c("Age", "CD4", strata.labels$sex)
+    dat = reshape2::melt(dat, id.vars=c("Age", "CD4"), variable.name="Sex", value.name="Value")
+    dat$CD4 = factor(dat$CD4, levels=strata.labels$cd4.adult)
+    return(dat)
+  })
+  names(dat_list) = strata.labels$art.dur
+  dat_flat = dplyr::bind_rows(dat_list, .id="ART")
+
+  if (direction == "wide") {
+    dat = reshape2::dcast(dat_flat, Sex+CD4+ART~Age, value.var="Value")
+  } else {
+    dat = dat_flat
+  }
+  return(dat)
+}
+
+#' @describeIn dp.inputs.adult.hiv.mortality.art On-ART mortality rate ratios by year and ART duration.
+#' @return \code{dp.inputs.adult.hiv.mortality.art.trend} returns a data frame.
+#' @export
+dp.inputs.adult.hiv.mortality.art.trend = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=2, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<MortalityRates MV2>", fmt)
+  dat = cbind(strata.labels$art.dur.agg, data.frame(raw))
+  colnames(dat) = c("ART", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("ART"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' @describeIn dp.inputs.adult.hiv.mortality.art Scale factor applied to on-ART mortality rates.
+#' @return \code{dp.inputs.adult.hiv.mortality.art.scale} returns scale factor.
 #' @export
 dp.inputs.adult.hiv.mortality.art.scale = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
@@ -1231,7 +1285,7 @@ dp.output.art.50plus = function(dp.raw, direction="wide", first.year=NULL, final
 
 #' Get Spectrum's estimate of adult PLHIV by CD4 category
 #'
-#' Get the estimate number of adults by CD4 category and ART status
+#' Get the estimated number of adults by CD4 category and ART status
 #' @describeIn dp.output.cd4.15_up Adults age 15+
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
