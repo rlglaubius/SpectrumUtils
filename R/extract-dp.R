@@ -1693,6 +1693,27 @@ dp.inputs.child.art.reinitiations = function(dp.raw, direction="wide", first.yea
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
+#' ART uptake in children by age and year
+#'
+#' Get the annual probability of ART initiation by single age among children not on ART
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.inputs.child.art.uptake = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=15, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<ChildARTDist MV>", fmt)
+  dat = cbind(Age=0:14, data.frame(raw))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get Spectrum ART by age inputs
 #'
 #' Get input numbers of people on ART entered into Spectrum by sex, age and year
