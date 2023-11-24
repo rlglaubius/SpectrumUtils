@@ -3,6 +3,7 @@
 \name{ha.inputs.lifetime.partners}
 \alias{ha.inputs.lifetime.partners}
 \alias{ha.inputs.partner.age}
+\alias{ha.inputs.partner.age.par}
 \alias{ha.inputs.mixing.age}
 \title{Extract Goals ASM behavioral inputs}
 \usage{
@@ -14,6 +15,8 @@ ha.inputs.lifetime.partners(
 )
 
 ha.inputs.partner.age(ha.raw, direction = "wide")
+
+ha.inputs.partner.age.par(ha.raw, direction = "wide")
 
 ha.inputs.mixing.age(ha.raw, direction = "wide")
 }
@@ -39,7 +42,9 @@ Extract Goals ASM behavioral inputs
 \itemize{
 \item \code{ha.inputs.lifetime.partners()}: Time trend in numbers of lifetime partners
 
-\item \code{ha.inputs.partner.age()}: Relative rates of partner change by age
+\item \code{ha.inputs.partner.age()}: Partner change rates by age in the last year of projection
+
+\item \code{ha.inputs.partner.age.par()}: Parameters describing relative rates of partner change by age
 
 \item \code{ha.inputs.mixing.age()}: Mixing preferences by age
 
@@ -48,7 +53,10 @@ Extract Goals ASM behavioral inputs
 
 
 \itemize{
-\item{\code{ha.inputs.mixing.age}}: Returns mixing preferences of females by male age. In wide format, rows correspond to male age, columns to female age.
+\item{\code{ha.inputs.partner.age.par} Returns the peak and median in relative rates of
+partner change by age after sexual debut. Relative rates of partner change at age a are
+calculated as dlnorm(a+0.5-debut, logmu, logsd) where logmu = median-debut and logsd=sqrt(logmu - ln(peak - debut))}
+\item{\code{ha.inputs.mixing.age}} Returns mixing preferences of females by male age. In wide format, rows correspond to male age, columns to female age.
 }
 }
 

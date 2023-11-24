@@ -118,7 +118,10 @@ ha.inputs.transmission = function(ha.raw, direction="wide") {
 #' @section Details:
 #'
 #' \itemize{
-#' \item{\code{ha.inputs.mixing.age}}: Returns mixing preferences of females by male age. In wide format, rows correspond to male age, columns to female age.
+#' \item{\code{ha.inputs.partner.age.par} Returns the peak and median in relative rates of
+#' partner change by age after sexual debut. Relative rates of partner change at age a are
+#' calculated as dlnorm(a+0.5-debut, logmu, logsd) where logmu = median-debut and logsd=sqrt(logmu - ln(peak - debut))}
+#' \item{\code{ha.inputs.mixing.age}} Returns mixing preferences of females by male age. In wide format, rows correspond to male age, columns to female age.
 #' }
 #'
 #' @export
@@ -137,12 +140,25 @@ ha.inputs.lifetime.partners = function(ha.raw, direction="wide", first.year=NULL
   return(dat)
 }
 
-#' @describeIn ha.inputs.lifetime.partners Relative rates of partner change by age
+#' @describeIn ha.inputs.lifetime.partners Partner change rates by age in the last year of projection
 #' @export
 ha.inputs.partner.age = function(ha.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=81, ncol=1)
   raw = extract.ha.tag(ha.raw, " <Partner Age Trend>", fmt) # This tag has a leading space in .HA file
   dat = data.frame(Age=0:80, Value=raw)
+  return(dat)
+}
+
+#' @describeIn ha.inputs.lifetime.partners Parameters describing relative rates of partner change by age
+#' @export
+ha.inputs.partner.age.par = function(ha.raw, direction="wide") {
+  fmt1 = list(cast=as.numeric, offset=1, nrow=1, ncol=1)
+  fmt2 = list(cast=as.numeric, offset=2, nrow=1, ncol=3)
+  raw_peak = extract.ha.tag(ha.raw, "<Age Peak Activity>",   fmt1)
+  raw_half = extract.ha.tag(ha.raw, "<Age Median Activity>", fmt1)
+  raw_debut = extract.ha.tag(ha.raw, " <Sex Debut>", fmt2)
+  dat = data.frame(Parameter=c("Age at sexual debut, male", "Age at sexual debut, female", "Age of peak sexual activity", "Age of median sexual activity"),
+                   Value = c(raw_debut[1,2:3], raw_peak, raw_half))
   return(dat)
 }
 
