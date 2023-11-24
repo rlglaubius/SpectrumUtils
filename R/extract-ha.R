@@ -55,6 +55,158 @@ ha.inputs.final.year = function(ha.raw, direction="wide") {
   return(as.numeric(raw))
 }
 
+#' Extract inputs listed in the Goals ASM "Configure" form
+#'
+#' Extract secondary school gross enrollment rates, secondary pupil-teacher
+#' ratios, frequency of teacher re-training, numbers of sex acts per partner,
+#' and condom wastage parameters.
+#' @inheritParams ha.inputs.first.year
+#' @return a data frame
+#' @export
+ha.inputs.configuration = function(ha.raw, direction="wide") {
+  fmt_1 = list(cast=as.numeric, offset=1, nrow=5, ncol=1)
+  fmt_2 = list(cast=as.numeric, offset=1, nrow=1, ncol=1)
+  raw_1 = extract.ha.tag(ha.raw, "<Config Costing>", fmt_1)
+  raw_2 = extract.ha.tag(ha.raw, "<Condom Wastage>", fmt_2)
+
+  names = c("AGYW: secondary school gross enrollment rate",
+            "ABYM: secondary school gross enrollment rate",
+            "Secondary pupil-teacher ratio",
+            "Frequency of teacher re-training (years)",
+            "Number of sex acts per partner",
+            "Condom wastage during storage and distribution")
+  rval = data.frame(Parameter = names,
+                    Value = c(raw_1[c(1,2,4,5,3)], raw_2)) # reorder to match Spectrum form
+  return(rval)
+}
+
+#' Extract inputs listed in the Goals ASM "Epidemiology" form
+#'
+#' Extract transmission probabilities by HIV-positive partner's sex
+#' @param ha.raw Goals ASM module data in raw format, as returned by
+#'   \code{read.raw.ha()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.final.year()}
+#' @return a data frame
+#' @export
+ha.inputs.transmission = function(ha.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=3)
+  raw = extract.ha.tag(ha.raw, " <TranmRel>", fmt) # This tag has a leading space in .HA file
+  val = raw[1,2:3] # There is a blank cell before the model inputs
+  if (direction=="wide") {
+    dat = data.frame(matrix(val, nrow=1))
+    colnames(dat) = strata.labels$sex
+  } else {
+    dat = data.frame(Sex=strata.labels$sex, Value=val)
+  }
+  return(dat)
+}
+
+#' Extract Goals ASM behavioral inputs
+#' @describeIn ha.inputs.lifetime.partners Time trend in numbers of lifetime partners
+#' @param ha.raw Goals ASM module data in raw format, as returned by
+#'   \code{read.raw.ha()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.final.year()}
+#' @return a data frame
+#' @section Details:
+#'
+#' \itemize{
+#' \item{\code{ha.inputs.mixing.age}}: Returns mixing preferences of females by male age. In wide format, rows correspond to male age, columns to female age.
+#' }
+#'
+#' @export
+ha.inputs.lifetime.partners = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=1, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, " <Partner Trend>", fmt) # This tag has a leading space in .HA file
+  if (direction=="wide") {
+    dat = data.frame(matrix(raw, nrow=1))
+    colnames(dat) = sprintf("%d", first.year:final.year)
+  } else {
+    dat = data.frame(Year = first.year:final.year, Value=matrix(raw, ncol=1))
+  }
+  return(dat)
+}
+
+#' @describeIn ha.inputs.lifetime.partners Relative rates of partner change by age
+#' @export
+ha.inputs.partner.age = function(ha.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=81, ncol=1)
+  raw = extract.ha.tag(ha.raw, " <Partner Age Trend>", fmt) # This tag has a leading space in .HA file
+  dat = data.frame(Age=0:80, Value=raw)
+  return(dat)
+}
+
+#' @describeIn ha.inputs.lifetime.partners Mixing preferences by age
+#' @export
+ha.inputs.mixing.age = function(ha.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=1, nrow=81, ncol=81)
+  raw = extract.ha.tag(ha.raw, " <Partner Choice>", fmt) # This tag has a leading space in .HA file
+  dat = data.frame(Age=0:80, Value=raw)
+  colnames(dat) = c("Male age", 0:80)
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars="Male age", variable.name="Female age", value.name="Value")
+    dat$`Female age` = as.numeric(as.character(dat$`Female age`))
+  }
+  return(dat)
+}
+
+#' HIV program coverage inputs
+#'
+#' @param ha.raw Goals ASM module data in raw format, as returned by
+#'   \code{read.raw.ha()}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @param first.year First year of the projection. If \code{first.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.first.year()}
+#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
+#'   will be filled in using \code{ha.inputs.final.year()}
+#' @describeIn ha.inputs.condom.use Condom use inputs by year and age group
+#' @return a data frame
+#' @export
+ha.inputs.condom.use = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  fmt = list(cast=as.character, offset=1, nrow=19, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, " <Condom By Age>", fmt) # This tag has a leading space in .HA file
+  val = matrix(as.numeric(raw[c(4,9,14,19),]), nrow=length(strata.labels$age.cd4.adult)) # Extracts just time trends, not the logistic curve parameters
+  dat = cbind(strata.labels$age.cd4.adult, data.frame(val))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' @describeIn ha.inputs.condom.use Input levels of viral suppression on ART by year, sex, and age group
+#' @export
+ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  fmt = list(cast=as.numeric, offset=1, nrow=8, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, "<ARTViralSuppression>", fmt)
+  dat = cbind(Sex = rep(rev(strata.labels$sex), each=4),
+              Age = rep(strata.labels$age.cd4.adult, 2),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get input key population sizes
 #'
 #' Extract input key population sizes. These are expressed as percentages of the
@@ -86,36 +238,6 @@ ha.inputs.keypop.size = function(ha.raw, direction="wide", first.year=NULL, fina
   colnames(dat) = c("Sex", "Age", "Population", sprintf("%d", first.year:final.year))
   if (direction == "long") {
     dat = reshape2::melt(dat, id.vars=c("Sex", "Age", "Population"), variable.name="Year", value.name="Value")
-    dat$Year = as.numeric(as.character(dat$Year))
-  }
-  return(dat)
-}
-
-#' Get viral suppression inputs
-#'
-#' Get input levels of viral suppression among adult PLHIV on ART by year and
-#' age group
-#' @param ha.raw Goals ASM module data in raw format, as returned by
-#'   \code{read.raw.ha()}
-#' @param direction Request "wide" (default) or "long" format data.
-#' @param first.year First year of the projection. If \code{first.year=NULL}, it
-#'   will be filled in using \code{ha.inputs.first.year()}
-#' @param final.year Final year of the projection. If \code{final.year=NULL}, it
-#'   will be filled in using \code{ha.inputs.final.year()}
-#' @return A data frame.
-#' @export
-ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
-  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
-
-  fmt = list(cast=as.numeric, offset=1, nrow=8, ncol=final.year-first.year+1)
-  raw = extract.ha.tag(ha.raw, "<ARTViralSuppression>", fmt)
-  dat = cbind(Sex = rep(rev(strata.labels$sex), each=4),
-              Age = rep(strata.labels$age.cd4.adult, 2),
-              data.frame(raw))
-  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
-  if (direction == "long") {
-    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
