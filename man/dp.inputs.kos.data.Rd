@@ -13,13 +13,12 @@ dp.inputs.kos.data(
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
-\code{read.raw.dp}}
+\code{read.raw.dp()}}
 
 \item{direction}{Request "wide" (default) or "long" format data.}
 
 \item{first.year}{First year of the projection. If \code{first.year=NULL}, it
-will be filled in using \code{dp.inputs.first.year()}. Note that user inputs
-start in 2010, so no inputs are available in earlier years.}
+will be filled in using \code{dp.inputs.first.year()}}
 
 \item{final.year}{Final year of the projection. If \code{final.year=NULL}, it
 will be filled in using \code{dp.inputs.final.year()}}

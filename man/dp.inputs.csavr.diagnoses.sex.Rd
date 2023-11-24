@@ -13,7 +13,7 @@ dp.inputs.csavr.diagnoses.sex(
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
-\code{read.raw.dp}}
+\code{read.raw.dp()}}
 
 \item{direction}{Request "wide" (default) or "long" format data.}
 

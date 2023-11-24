@@ -8,7 +8,7 @@ dp.inputs.kos.source(dp.raw, direction = "wide")
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
-\code{read.raw.dp}}
+\code{read.raw.dp()}}
 
 \item{direction}{Ignored; included for compatibility with similar functions.}
 }

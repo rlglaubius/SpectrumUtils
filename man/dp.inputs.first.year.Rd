@@ -2,9 +2,12 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.first.year}
 \alias{dp.inputs.first.year}
-\title{Get the first year of a Spectrum projection}
+\alias{dp.inputs.final.year}
+\title{Spectrum projection time span}
 \usage{
 dp.inputs.first.year(dp.raw, direction = "wide")
+
+dp.inputs.final.year(dp.raw, direction = "wide")
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
@@ -13,8 +16,15 @@ dp.inputs.first.year(dp.raw, direction = "wide")
 \item{direction}{Ignored; included for compatibility with similar functions.}
 }
 \value{
-the first year of the projection.
+the requested year
 }
 \description{
-Get the first year of a Spectrum projection
+Spectrum projection time span
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.first.year()}: First year of the projection
+
+\item \code{dp.inputs.final.year()}: Final year of the projection
+
+}}

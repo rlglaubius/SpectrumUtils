@@ -10,7 +10,7 @@ dp.inputs.use.external.pop(dp.raw, direction = "wide")
 \item{dp.raw}{DemProj module data in raw format, as returned by
 \code{read.raw.dp()}}
 
-\item{direction}{Ignored}
+\item{direction}{Ignored; included for compatibility with similar functions.}
 }
 \value{
 A list with two elements. Element \code{use.external.pop} is TRUE if
