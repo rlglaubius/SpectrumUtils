@@ -1144,9 +1144,17 @@ dp.output.art.need = function(dp.raw, direction="wide", first.year=NULL, final.y
   return(dat)
 }
 
-#'Get Spectrum's estimated need for PMTCT services
+#' Get Spectrum PMTCT outputs
+#' @describeIn dp.output.pmtct Number of pregnant women receiving PMTCT
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame
+#' @export
+dp.output.pmtct = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ChildOnPMTCT MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.output.pmtct Number of pregnant women who need PMTCT
 #' @export
 dp.output.pmtct.need = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<ChildNeedPMTCT MV>"
