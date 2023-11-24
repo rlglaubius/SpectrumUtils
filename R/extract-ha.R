@@ -212,7 +212,7 @@ ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL
 
   fmt = list(cast=as.numeric, offset=1, nrow=8, ncol=final.year-first.year+1)
   raw = extract.ha.tag(ha.raw, "<ARTViralSuppression>", fmt)
-  dat = cbind(Sex = rep(rev(strata.labels$sex), each=4),
+  dat = cbind(Sex = rep(strata.labels$sex, each=4),
               Age = rep(strata.labels$age.cd4.adult, 2),
               data.frame(raw))
   colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
