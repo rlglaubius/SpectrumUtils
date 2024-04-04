@@ -4,6 +4,7 @@
 \alias{dp.output.csavr.deaths.hiv}
 \alias{dp.output.csavr.incident.hiv}
 \alias{dp.output.csavr.plhiv}
+\alias{dp.output.csavr.diagnoses}
 \title{CSAVR estimates}
 \usage{
 dp.output.csavr.deaths.hiv(
@@ -21,6 +22,13 @@ dp.output.csavr.incident.hiv(
 )
 
 dp.output.csavr.plhiv(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.output.csavr.diagnoses(
   dp.raw,
   direction = "wide",
   first.year = NULL,
@@ -52,5 +60,7 @@ Get estimates produced by Spectrum's Case Surveillance and Vital Registration (C
 \item \code{dp.output.csavr.incident.hiv()}: New HIV infections in adults
 
 \item \code{dp.output.csavr.plhiv()}: Adults living with HIV
+
+\item \code{dp.output.csavr.diagnoses()}: New HIV diagnoses in adults
 
 }}

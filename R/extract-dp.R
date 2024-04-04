@@ -2416,3 +2416,9 @@ dp.output.csavr.plhiv = function(dp.raw, direction="wide", first.year=NULL, fina
   return(extract.csavr.output("<CSAVRNumPLHIV MV3>", dp.raw, direction, first.year, final.year))
 }
 
+#' @describeIn dp.output.csavr.deaths.hiv New HIV diagnoses in adults
+#' @export
+dp.output.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  return(extract.csavr.output("<CSAVRNumDiagnosed MV3>", dp.raw, direction, first.year, final.year))
+}
+
