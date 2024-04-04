@@ -567,7 +567,7 @@ dp.inputs.adult.initial.cd4 = function(dp.raw, direction="wide") {
 dp.inputs.csavr.model = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   opt = extract.dp.tag(dp.raw, "<FitIncidenceTypeOfFit MV2>", fmt)[1,1]
-  return(factor(opt, levels=0:4, labels=strata.labels$csavr.model))
+  return(factor(opt, levels=0:6, labels=strata.labels$csavr.model))
 }
 
 #' Check which data were selected for CSAVR incidence estimation
