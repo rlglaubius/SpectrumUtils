@@ -2370,7 +2370,7 @@ dp.inputs.hiv.abortion = function(dp.raw, direction="wide", first.year=NULL, fin
   return(dat)
 }
 
-#' Helper function for extracting CSAVR age-aggregated outputs organized by model, sex, and statistic
+# Helper function for extracting CSAVR age-aggregated outputs organized by model, sex, and statistic
 extract.csavr.output = function(tag, dp.raw, direction, first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
