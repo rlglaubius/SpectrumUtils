@@ -2370,3 +2370,49 @@ dp.inputs.hiv.abortion = function(dp.raw, direction="wide", first.year=NULL, fin
   return(dat)
 }
 
+#' Helper function for extracting CSAVR age-aggregated outputs organized by model, sex, and statistic
+extract.csavr.output = function(tag, dp.raw, direction, first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n_mod = length(strata.labels$csavr.model) - 1
+  n_sex = length(strata.labels$sex.aug)
+  fmt = list(cast=as.numeric, offset=2, nrow=n_mod * n_sex * 4, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, tag, fmt)
+  dat = cbind(expand.grid(Statistic=c("Value", "Unused", "Lower", "Upper"),
+                          Sex=strata.labels$sex.aug,
+                          Model=strata.labels$csavr.model[1+1:n_mod]), raw)
+  dat = dat[dat$Statistic!="Unused",]
+  colnames(dat) = c("Statistic", "Sex", "Model", sprintf("%d", first.year:final.year))
+  dat$Model = factor(dat$Model)
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Model", "Sex", "Statistic"), variable.name="Year", value.name="Value")
+    dat = reshape2::dcast(dat, Model+Sex+Year~Statistic, value.var="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' CSAVR estimates
+#'
+#' Get estimates produced by Spectrum's Case Surveillance and Vital Registration (CSAVR) tool
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @describeIn dp.output.csavr.deaths.hiv HIV-related deaths in adults
+#' @export
+dp.output.csavr.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  return(extract.csavr.output("<CSAVRAIDSDeaths MV3>", dp.raw, direction, first.year, final.year))
+}
+
+#' @describeIn dp.output.csavr.deaths.hiv New HIV infections in adults
+#' @export
+dp.output.csavr.incident.hiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  return(extract.csavr.output("<CSAVRNumNewInfections MV3>", dp.raw, direction, first.year, final.year))
+}
+
+#' @describeIn dp.output.csavr.deaths.hiv Adults living with HIV
+#' @export
+dp.output.csavr.plhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  return(extract.csavr.output("<CSAVRNumPLHIV MV3>", dp.raw, direction, first.year, final.year))
+}
+
