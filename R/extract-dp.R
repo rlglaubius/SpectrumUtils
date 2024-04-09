@@ -1436,11 +1436,22 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
   return(subset(dat, Sex != "Male+Female"))
 }
 
-#' Get input factor used to adjust numbers of adults on ART for over/undercount
+#' Extract inputs used to adjust programmatic numbers on ART for overcount or
+#' undercount
 #'
-#' Get input factor used to adjust numbers of adults on ART for over/undercount (new in 2022)
+#' Routine ART program data entered into Spectrum may be overcounted or
+#' undercounted for a variety of reasons. Countries may enter scale factors by
+#' year to adjust their program data up or down proportionally. These scale
+#' factors are entered seperately for adults and for children. Spectrum also has
+#' a TRUE/FALSE flag associated with adult and child adjustments. Spectrum will
+#' only adjust numbers on ART in a given year if this flag is TRUE, the number
+#' on ART is entered as an absolute number (not a percentage), and the scale
+#' factor value for that year is some value besides 1.
+#'
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
+#' @describeIn dp.inputs.adult.art.adjustment.value Adjustment values for adult
+#'   ART by sex and year.
 #' @export
 dp.inputs.adult.art.adjustment.value = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -1456,19 +1467,25 @@ dp.inputs.adult.art.adjustment.value = function(dp.raw, direction="wide", first.
   return(dat)
 }
 
-#' Check whether adult ART inputs were adjusted
-#'
-#' @inheritParams dp.inputs.first.year
-#' @return TRUE if adult ART inputs were adjusted, FALSE otherwise
-#' @section Details:
-#'
-#'   The magnitude of adjustments made to ART inputs can be accessed using
-#'   \code{dp.inputs.adult.art.adjustment.value}.
-#'
+#' @describeIn dp.inputs.adult.art.adjustment.value TRUE if adult ART adjustments are enabled, FALSE otherwise.
 #' @export
 dp.inputs.adult.art.adjustment.flag = function(dp.raw, direction="wide") {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   return(extract.dp.tag(dp.raw, "<AdultARTAdjFactorFlag>", fmt)[1,1] == 1)
+}
+
+#' @describeIn dp.inputs.adult.art.adjustment.value Adjustment values for child ART by year.
+#' @export
+dp.inputs.child.art.adjustment.value = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ChildARTAdjFactor MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.adult.art.adjustment.value TRUE if child ART adjustments are enabled, FALSE otherwise.
+#' @export
+dp.inputs.child.art.adjustment.flag = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<ChildARTAdjFactorFlag>", fmt)[1,1] == 1)
 }
 
 #' Check parameters used to determine ART initiation timing

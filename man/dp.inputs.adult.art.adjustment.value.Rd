@@ -2,7 +2,11 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.adult.art.adjustment.value}
 \alias{dp.inputs.adult.art.adjustment.value}
-\title{Get input factor used to adjust numbers of adults on ART for over/undercount}
+\alias{dp.inputs.adult.art.adjustment.flag}
+\alias{dp.inputs.child.art.adjustment.value}
+\alias{dp.inputs.child.art.adjustment.flag}
+\title{Extract inputs used to adjust programmatic numbers on ART for overcount or
+undercount}
 \usage{
 dp.inputs.adult.art.adjustment.value(
   dp.raw,
@@ -10,6 +14,17 @@ dp.inputs.adult.art.adjustment.value(
   first.year = NULL,
   final.year = NULL
 )
+
+dp.inputs.adult.art.adjustment.flag(dp.raw, direction = "wide")
+
+dp.inputs.child.art.adjustment.value(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.child.art.adjustment.flag(dp.raw, direction = "wide")
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
@@ -27,5 +42,24 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get input factor used to adjust numbers of adults on ART for over/undercount (new in 2022)
+Routine ART program data entered into Spectrum may be overcounted or
+undercounted for a variety of reasons. Countries may enter scale factors by
+year to adjust their program data up or down proportionally. These scale
+factors are entered seperately for adults and for children. Spectrum also has
+a TRUE/FALSE flag associated with adult and child adjustments. Spectrum will
+only adjust numbers on ART in a given year if this flag is TRUE, the number
+on ART is entered as an absolute number (not a percentage), and the scale
+factor value for that year is some value besides 1.
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.adult.art.adjustment.value()}: Adjustment values for adult
+ART by sex and year.
+
+\item \code{dp.inputs.adult.art.adjustment.flag()}: TRUE if adult ART adjustments are enabled, FALSE otherwise.
+
+\item \code{dp.inputs.child.art.adjustment.value()}: Adjustment values for child ART by year.
+
+\item \code{dp.inputs.child.art.adjustment.flag()}: TRUE if child ART adjustments are enabled, FALSE otherwise.
+
+}}
