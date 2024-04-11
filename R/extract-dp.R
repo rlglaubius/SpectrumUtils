@@ -409,6 +409,32 @@ dp.inputs.anc.testing.helper = function(dp.raw, tag, rnames, first.year, final.y
   dat = cbind(rnames, data.frame(raw))
 }
 
+#' Extract HIV testing program data
+#' @inheritParams dp.inputs.tfr
+#' @return a data frame
+#' @export
+dp.inputs.hiv.testing = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  ind_name = c("Total diagnostic tests", "Total positive tests",
+               "Total HTS tests",        "Total positive HTS tests",
+               "Total ANC tests",        "Total positive ANC tests",
+               "Total self-tests",
+               "Total index partner tests")
+  years = sprintf("%d", first.year:final.year)
+  fmt = list(cast=as.numeric, offset=2, nrow=8, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<HIVTesting MV>", fmt)
+  raw[raw==dp_not_avail] = NA
+  dat = cbind(Indicator=ind_name, data.frame(raw))
+  colnames(dat) = c("Indicator", years)
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Indicator"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the source indicated for number who know their HIV+ status
 #' @inheritParams dp.inputs.first.year
 #' @return The knowledge of status (KoS) source as a factor (see "Details" below
