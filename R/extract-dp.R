@@ -2080,8 +2080,7 @@ dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
 
 #' Get viral suppression inputs
 #'
-#' Get numbers of adults and children tested for viral suppression and numbers
-#' whose test indicated viral suppression by year
+#' @describeIn dp.inputs.viral.suppression Numbers of people who had a viral load measured and numbers who were virally suppressed
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @details Some versions of Spectrum only allowed viral suppression data to be
@@ -2118,6 +2117,13 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide", first.year=NULL
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
+}
+
+#' @describeIn dp.inputs.viral.suppression The threshold (in virus copies/mL) used to classify people as virally suppressed
+#' @export
+dp.inputs.viral.suppression.threshold = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ViralSuppressionThreshold MV4>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
 #' Get HIV prevalence data entered from household surveys

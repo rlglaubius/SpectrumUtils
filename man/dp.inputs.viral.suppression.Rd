@@ -2,10 +2,18 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.viral.suppression}
 \alias{dp.inputs.viral.suppression}
+\alias{dp.inputs.viral.suppression.threshold}
 \title{Get viral suppression inputs}
 \usage{
 dp.inputs.viral.suppression(
   dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.viral.suppression.threshold(
+  dp,
   direction = "wide",
   first.year = NULL,
   final.year = NULL
@@ -27,8 +35,7 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get numbers of adults and children tested for viral suppression and numbers
-whose test indicated viral suppression by year
+Get viral suppression inputs
 }
 \details{
 Some versions of Spectrum only allowed viral suppression data to be
@@ -37,3 +44,10 @@ Some versions of Spectrum only allowed viral suppression data to be
   for every year in a projection, though countries may not input anything in
   most years.
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.viral.suppression()}: Numbers of people who had a viral load measured and numbers who were virally suppressed
+
+\item \code{dp.inputs.viral.suppression.threshold()}: The threshold (in virus copies/mL) used to classify people as virally suppressed
+
+}}
