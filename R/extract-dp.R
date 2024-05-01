@@ -1843,6 +1843,28 @@ dp.inputs.incidence = function(dp.raw, direction="wide", first.year=NULL, final.
   return(dat)
 }
 
+#' Nosocomial infections among children
+#'
+#' AIM takes as input numbers of nosocomial infections in children by five-year
+#' age group and calendar year.
+#' @inheritParams dp.inputs.first.year
+#' @return A data frame.
+#' @export
+dp.inputs.nosocomial.infections = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  fmt = list(cast=as.numeric, offset=2, nrow=3, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<NosocomialInfectionsByAge MV>", fmt)
+  dat = cbind(Age=strata.labels$age.5yr[1:3], data.frame(raw))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' Get the maximum amount that AIM can adjust incidence estimates from EPP
 #'
 #' EPP hands AIM estimated HIV incidence and prevalence trends. EPP and AIM

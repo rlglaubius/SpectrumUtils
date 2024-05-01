@@ -13,7 +13,7 @@ dp.inputs.viral.suppression(
 )
 
 dp.inputs.viral.suppression.threshold(
-  dp,
+  dp.raw,
   direction = "wide",
   first.year = NULL,
   final.year = NULL
