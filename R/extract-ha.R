@@ -259,6 +259,35 @@ ha.inputs.keypop.size = function(ha.raw, direction="wide", first.year=NULL, fina
   return(dat)
 }
 
+#' Data for model calibration
+#' @describeIn ha.inputs.fitdata.trend HIV incidence or prevalence data points
+#' @inheritParams ha.inputs.first.year
+#' @return a data frame.
+#' @export
+ha.inputs.fitdata.trend = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  ## <Fit Data> has dynamic size, so we do an initial read to get the number of
+  ## rows of data. <Fit Data> also violates some rules about how data should be
+  ## written to the PJNZ, so we need custom code to parse this data.
+  tag = "<Fit Data>"
+  ind_tag = dplyr::first(which(ha.raw$Tag == tag))
+  nrow = as.numeric(ha.raw[ind_tag+1,3])
+
+  row_bgn = ind_tag + 2
+  row_end = row_bgn + nrow - 1
+  col_bgn = 2
+  col_end = 10
+
+  raw = ha.raw[row_bgn:row_end, col_bgn:col_end]
+  dat = as.data.frame(matrix(as.numeric(unlist(raw)), nrow=row_end - row_bgn + 1, ncol=col_end - col_bgn + 1))
+  colnames(dat) = c("Population", "Sex", "Year", "Value", "Lower", "Upper", "N", "UseInFit", "Type")
+  dat = dplyr::mutate(dat,
+                      Population = factor(Population, levels=-1:1, labels=c("None", "Adults (15-49)", "Young people (15-24)")),
+                      Sex        = factor(Sex,        levels=0:2,  labels=strata.labels$sex.aug),
+                      Type       = factor(Type,       levels=-1:1, labels=c("None", "Incidence", "Prevalence")))
+
+  return(dat)
+}
+
 #' Get the number of infections transmitted
 #'
 #' Get the number of infections transmitted by PLHIV according to sex, age,

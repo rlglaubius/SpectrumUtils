@@ -647,10 +647,24 @@ dp.inputs.csavr.data.options = function(dp.raw, direction="wide") {
 #'
 #' @export
 dp.inputs.csavr.irr.options = function(dp.raw, direction="wide") {
+  tag_found = grep("CSAVRAdjustIRRs", dp.raw$Tag, value=TRUE)
+  tag_v3 = "<CSAVRAdjustIRRs MV3>"
+  tag_v4 = "<CSAVRAdjustIRRs MV4>"
+
+  if (tag_found == tag_v4) {
+    tag = tag_v4
+    n_models = 6
+    csavr_models = strata.labels$csavr.model[2:7]
+  } else if (tag_found == tag_v3) {
+    tag = tag_v3
+    n_models = 4
+    csavr_models = strata.labels$csavr.model[2:5]
+  }
+
   # two-step cast needed because as.logical("1") = NA, but as.logical(as.integer("1")) = TRUE
-  fmt = list(cast=function(x) {as.logical(as.integer(x))}, offset=2, nrow=length(strata.labels$csavr.model) - 1, ncol=2)
-  raw = extract.dp.tag(dp.raw, "<CSAVRAdjustIRRs MV3>", fmt)
-  dat = cbind(strata.labels$csavr.model[2:5], data.frame(raw))
+  fmt = list(cast=function(x) {as.logical(as.integer(x))}, offset=2, nrow=n_models, ncol=2)
+  raw = extract.dp.tag(dp.raw, tag, fmt)
+  dat = cbind(csavr_models, data.frame(raw))
   colnames(dat) = c("Model", "Sex", "Age")
   if (direction == "long") {
     dat = reshape2::melt(dat, id.vars="Model", variable.name="IRR", value.name="Value")
@@ -2173,24 +2187,36 @@ dp.inputs.viral.suppression.threshold = function(dp.raw, direction="wide", first
 #'
 #' @export
 dp.inputs.survey.hiv.prevalence = function(dp.raw, direction="wide") {
-  max_surveys = 5
+  tag_found = grep("PrevSurveyData", dp.raw$Tag, value=TRUE)
+  tags_v4 = list(data="<PrevSurveyData MV4>", used="<PrevSurveyUsed MV2>", name="<PrevSurveyName MV2>", year="<PrevSurveyYear MV2>")
+  tags_v5 = list(data="<PrevSurveyData MV5>", used="<PrevSurveyUsed MV3>", name="<PrevSurveyName MV3>", year="<PrevSurveyYear MV3>")
+
+  if (tag_found == tags_v5$data) {
+    max_surveys = 8
+    tags = tags_v5
+  } else if (tag_found == tags_v4$data) {
+    max_surveys = 5
+    tags = tags_v4
+  }
 
   ## nrow allows for a blank row between consecutive surveys
   nrow = (length(strata.labels$sex.aug) * length(strata.labels$age.5yr) + 1) * max_surveys - 1
+  cnames = c("Number", "Prevalence", "Lower", "Upper", "N")
+  ncol = length(cnames)
 
-  fmt_data = list(cast=as.numeric,   offset=4, nrow=nrow, ncol=5)
+  fmt_data = list(cast=as.numeric,   offset=4, nrow=nrow, ncol=ncol)
   fmt_used = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
   fmt_name = list(cast=as.character, offset=2, nrow=1, ncol=max_surveys)
   fmt_year = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
 
-  raw_data = extract.dp.tag(dp.raw, "<PrevSurveyData MV4>", fmt_data)
-  raw_used = extract.dp.tag(dp.raw, "<PrevSurveyUsed MV2>", fmt_used)
-  raw_name = extract.dp.tag(dp.raw, "<PrevSurveyName MV2>", fmt_name)
-  raw_year = extract.dp.tag(dp.raw, "<PrevSurveyYear MV2>", fmt_year)
+  raw_data = extract.dp.tag(dp.raw, tags$data, fmt_data)
+  raw_used = extract.dp.tag(dp.raw, tags$used, fmt_used)
+  raw_name = extract.dp.tag(dp.raw, tags$name, fmt_name)
+  raw_year = extract.dp.tag(dp.raw, tags$year, fmt_year)
 
   raw_data = raw_data[!is.na(raw_data[,1]),] # drop blank rows separating surveys
   raw_data = as.data.frame(raw_data)
-  colnames(raw_data) = c("Number", "Prevalence", "Lower", "Upper", "N")
+  colnames(raw_data) = cnames
 
   dat = cbind(expand.grid(Age  = strata.labels$age.5yr,
                           Sex  = strata.labels$sex.aug,
@@ -2237,7 +2263,17 @@ dp.inputs.survey.hiv.prevalence = function(dp.raw, direction="wide") {
 #'
 #' @export
 dp.inputs.survey.art.coverage = function(dp.raw, direction="wide") {
-  max_surveys = 5
+  tag_found = grep("ARTCovSurveyData", dp.raw$Tag, value=TRUE)
+  tags_v1 = list(data="<ARTCovSurveyData MV>",  used="<ARTCovSurveyUsed MV>",  name="<ARTCovSurveyName MV>",  year="<ARTCovSurveyYear MV>")
+  tags_v2 = list(data="<ARTCovSurveyData MV2>", used="<ARTCovSurveyUsed MV2>", name="<ARTCovSurveyName MV2>", year="<ARTCovSurveyYear MV2>")
+
+  if (tag_found == tags_v2$data) {
+    max_surveys = 8
+    tags = tags_v2
+  } else if (tag_found == tags_v1$data) {
+    max_surveys = 5
+    tags = tags_v1
+  }
 
   lab.age = c(strata.labels$age.5yr, "0-14", "15-49", "50+")
   num.age = length(lab.age)
@@ -2250,10 +2286,10 @@ dp.inputs.survey.art.coverage = function(dp.raw, direction="wide") {
   fmt_name = list(cast=as.character, offset=2, nrow=1, ncol=max_surveys)
   fmt_year = list(cast=as.numeric,   offset=2, nrow=1, ncol=max_surveys)
 
-  raw_data = extract.dp.tag(dp.raw, "<ARTCovSurveyData MV>", fmt_data)
-  raw_used = extract.dp.tag(dp.raw, "<ARTCovSurveyUsed MV>", fmt_used)
-  raw_name = extract.dp.tag(dp.raw, "<ARTCovSurveyName MV>", fmt_name)
-  raw_year = extract.dp.tag(dp.raw, "<ARTCovSurveyYear MV>", fmt_year)
+  raw_data = extract.dp.tag(dp.raw, tags$data, fmt_data)
+  raw_used = extract.dp.tag(dp.raw, tags$used, fmt_used)
+  raw_name = extract.dp.tag(dp.raw, tags$name, fmt_name)
+  raw_year = extract.dp.tag(dp.raw, tags$year, fmt_year)
 
   raw_data = raw_data[!is.na(raw_data[,1]),] # drop blank rows separating surveys
   raw_data[raw_data==dp_not_avail] = NA      # replace missing values with NA
