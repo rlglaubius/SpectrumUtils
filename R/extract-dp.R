@@ -2561,7 +2561,7 @@ dp.output.ua.data = function(pjnz.file, direction="wide", first.year=NULL, final
 
   version = as.numeric(raw[1,2])
   if (version == 10) {
-    date   = lubridate::parse_date_time(raw[2,2], "mdy IMS Op")
+    date   = lubridate::parse_date_time(raw[2,2], "mdy IMS Op", quiet=TRUE)
     deaths = as.numeric(raw[3,2])
     bgnrow = grep("Master ID", raw[,1])
     endrow = grep("<end>", raw[,1])
