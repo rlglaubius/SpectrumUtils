@@ -2529,3 +2529,77 @@ dp.output.csavr.diagnoses = function(dp.raw, direction="wide", first.year=NULL, 
   return(extract.csavr.output("<CSAVRNumDiagnosed MV3>", dp.raw, direction, first.year, final.year))
 }
 
+#' Extract uncertainty analysis data
+#' @param pjnz.file The Spectrum file to extract data from
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A named list. See \code{Details} for a description of list contents.
+#' @section Details:
+#' \code{dp.output.ua.data} returns data used to calculate uncertainty bounds
+#' on AIM estimates along with metadata captured when Spectrum's Uncertainty
+#' Analysis (UA) tool was run. The data and metadata items consist of:
+#' \describe{
+#' \item{Version}{The version number of the file that stores UA data.}
+#' \item{Date}{The date and time the UA tool was run, according to the
+#' user's system clock. Note that SpectrumUtils interprets this in UTC timezone,
+#' but Spectrum does not save the timezone so the date is only accurate to
+#' within 24 hours.}
+#' \item{AIDSDeaths}{The number of HIV-related deaths in the final year
+#' of the projection across all ages and both sexes. Spectrum considers UA
+#' results valid only if this number of deaths agrees with the point estimate
+#' of HIV-related deaths. If these disagree, the user probably changed some
+#' model inputs since the last time UA was run.}
+#' \item{Data}{Uncertainty analysis bounds by sex and year for several
+#' key indicators. Bounds are expressed as a ratio relative to the point
+#' estimate. For example, a high bound of 1.1 means that the upper bound
+#' is 10\% higher than the point estimate. Point estimates for indicators
+#' must be extracted separately using appropriate \code{dp.extract}
+#' functions.}
+#' }
+#' @export
+dp.output.ua.data = function(pjnz.file, direction="wide", first.year=NULL, final.year=NULL) {
+  raw = read.module.data(pjnz.file, extension="DPUAD")
+
+  version = as.numeric(raw[1,2])
+  if (version == 10) {
+    date   = lubridate::parse_date_time(raw[2,2], "mdy IMS Op")
+    deaths = as.numeric(raw[3,2])
+    bgnrow = grep("Master ID", raw[,1])
+    endrow = grep("<end>", raw[,1])
+    dat    = raw[bgnrow:endrow,]
+
+    dat_name = dat[1,]
+    dat_vals = dat[3:nrow(dat),]
+    colnames(dat_vals) = dat_name
+    colnames(dat_vals)[2] = "Indicator"
+    colnames(dat_vals)[3] = "Sex"
+    colnames(dat_vals)[5] = "Bound"
+
+    indicator = NA
+    for (k in 1:nrow(dat_vals)) {
+      if (dat_vals$Indicator[k] != "") {
+        indicator = dat_vals$Indicator[k]
+      } else {
+        dat_vals$Indicator[k] = indicator
+      }
+    }
+    dat_vals = dat_vals[,c(2, 3, 5, 6:ncol(dat_vals))]
+
+    if (direction == "long") {
+      dat_vals = reshape2::melt(dat_vals, id.vars=c("Indicator", "Sex", "Bound"), value.name="Value", variable.name="Year")
+      dat_vals$Year = as.numeric(as.character(dat_vals$Year))
+    }
+
+  } else {
+    warning("Uncertainty analysis data file version %d not supported", version)
+    date = NULL
+    deaths = NULL
+    dat_vals = NULL
+  }
+
+  return(list(Version    = version,
+              Date       = date,
+              AIDSDeaths = deaths,
+              Data       = dat_vals))
+}
+
+

@@ -1,5 +1,7 @@
 test_that("Read DemProj and AIM data from Spectrum 6.36", {
-  dp = read.raw.dp("../uga-asm-2023-v000.pjnz")
+  pjnz = "../uga-asm-2023-v000.pjnz"
+
+  dp = read.raw.dp(pjnz)
 
   expect_length(dp.status.projection.valid(dp), 1)
   expect_length(dp.inputs.first.year(dp), 1)
@@ -112,4 +114,9 @@ test_that("Read DemProj and AIM data from Spectrum 6.36", {
   expect_equal(nrow(dp.output.csavr.incident.hiv(dp, direction="wide")) > 0, TRUE)
   expect_equal(nrow(dp.output.csavr.plhiv(dp, direction="wide")) > 0, TRUE)
   expect_equal(nrow(dp.output.csavr.diagnoses(dp, direction="wide")) > 0, TRUE)
+})
+
+test_that("Read AIM uncertainty analysis data from Spectrum 6.36", {
+  pjnz = "../uga-asm-2023-v000.pjnz"
+  expect_length(dp.output.ua.data(pjnz), 4)
 })
