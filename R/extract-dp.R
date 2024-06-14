@@ -824,8 +824,8 @@ dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, fin
     ## different streams of VR data
     fmt = list(cast=as.numeric, offset=2, nrow=2 * n_src, ncol=final.year - first.year + 1)
     raw = extract.dp.tag(dp.raw, tag_v2, fmt)[c(1,3,5),]
-    raw = cbind(strata.labels$csavr.source, raw)
-    dat = data.frame(raw)
+    dat = cbind(strata.labels$csavr.source, data.frame(raw))
+    # dat = data.frame(raw)
   }
   dat[dat==dp_not_avail] = NA
   colnames(dat) = c("Source", first.year:final.year)
