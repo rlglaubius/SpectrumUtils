@@ -27,6 +27,7 @@ strata.labels = list(
   kos.source = c("Case reports", "Shiny90", "CSAVR", "ECDC", "Direct"),
   incidence.model = c("Direct", "EPP", "AEM", "CSAVR", "Mortality", "ECDC"),
   csavr.model = c("None", "Double logistic", "Single logistic", "Splines - 5 knots", "rLogistic", "Splines - 4 knots", "Splines - 3 knots"),
+  csavr.source = c("Source 1", "Source 2", "Source 3"),
   epi.patterns = c("Generalized", "Concentrated non-IDU", "Concentrated IDU", "Custom", "Fitted: fixed over time", "Fitted: time-varying", "Fitted to HIV prevalence or ART", "CSAVR", "Web"),
   opt.region = c("Asia", "Central Africa", "Developed Countries", "East Africa", "Eastern Europe", "Latin America and Caribbean", "North Africa Middle East", "Southern Africa", "West Africa"),
   month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))

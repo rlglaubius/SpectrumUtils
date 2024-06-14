@@ -770,78 +770,152 @@ dp.inputs.csavr.diagnoses.cd4 = function(dp.raw, direction="wide", first.year=NU
   return(dat)
 }
 
-#' Get input numbers of HIV-related deaths overall
+#' Get input numbers of AIDS deaths used by CSAVR to estimate HIV incidence
+#'
+#' Spectrum's Case Surveillance and Vital Registration (CSAVR) tool uses case
+#' surveillance data on new HIV diagnoses and vital registration data on AIDS
+#' deaths in adults to estimate HIV incidence. AIDS deaths can be entered
+#' overall, by sex, or by sex and age. Countries may use AIDS deaths data from
+#' their vital registration system or AIDS deaths estimates produced by the
+#' Institute of Health Metrics and Evaluation (IHME) in CSAVR. Current Spectrum
+#' versions allow users to enter data from up to three different sources, then
+#' select which source would be used for fitting. Older versions of Spectrum
+#' only allowed users to enter one source of data.
 #' @inheritParams dp.inputs.tfr
-#' @return A data frame of input numbers of HIV-related deaths
+#' @return a data frame
+#' @describeIn dp.inputs.csavr.deaths.source The data source selected for use in
+#'   CSAVR.
+#' @export
+dp.inputs.csavr.deaths.source = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputAIDSDeathsSource MV>", fmt)
+  return(strata.labels$csavr.source[raw + 1])
+}
+
+#' @describeIn dp.inputs.csavr.deaths.source User-specified name for each source of AIDS deaths data entered into CSAVR.
+#' @export
+dp.inputs.csavr.deaths.source.names = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.character, offset=2, nrow=1, ncol=length(strata.labels$csavr.source))
+  raw = extract.dp.tag(dp.raw, "<CSAVRInputAIDSDeathsSourceName MV>", fmt)
+  return(data.frame(Source = strata.labels$csavr.source, Name = raw[1,]))
+}
+
+#' @describeIn dp.inputs.csavr.deaths.source Adult AIDS deaths by year and data source.
 #' @export
 dp.inputs.csavr.deaths = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
-  ## .DP stores two rows for this modvar, but only uses rows 1
-  fmt = list(cast=as.numeric, offset=2, nrow=2, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<CSAVRInputAIDSDeaths MV>", fmt)
-  raw[raw==dp_not_avail] = NA
+  tag_v1 = "<CSAVRInputAIDSDeaths MV>"
+  tag_v2 = "<CSAVRInputAIDSDeaths MV2>"
+
+  n_src = length(strata.labels$csavr.source)
+
+  ## CSAVR has two rows of deaths data, one for the number of deaths, one for
+  ## reporting completeness. Spectrum does not display or use the completeness
+  ## input, so we have not extracted it here.
+  if (tag_v1 %in% dp.raw$Tag) {
+    fmt = list(cast=as.numeric, offset=2, nrow=2, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v1, fmt)[1,]
+    raw = c(NA, raw)
+    dat = data.frame(t(raw))
+  } else {
+    ## Version 2 was introduced to allow countries to enter up to three
+    ## different streams of VR data
+    fmt = list(cast=as.numeric, offset=2, nrow=2 * n_src, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v2, fmt)[c(1,3,5),]
+    raw = cbind(strata.labels$csavr.source, raw)
+    dat = data.frame(raw)
+  }
+  dat[dat==dp_not_avail] = NA
+  colnames(dat) = c("Source", first.year:final.year)
 
   if (direction == "long") {
-    dat = data.frame(Year=first.year:final.year, Value=raw[1,])
-  } else {
-    dat = data.frame(t(raw[1,]))
-    colnames(dat) = sprintf("%d", first.year:final.year)
+    dat = reshape2::melt(dat, id.vars="Source", variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    dat$Source = NULL
   }
 
   return(dat)
 }
 
-#' Get input numbers of HIV-related deaths by sex
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame of input numbers of HIV-related deaths by sex
+#' @describeIn dp.inputs.csavr.deaths.source Adult AIDS deaths by year, sex, and data source.
 #' @export
 dp.inputs.csavr.deaths.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
-  n.sex = length(strata.labels$sex)
+  tag_v1 = "<CSAVRInputAIDSDeathsBySex MV>"
+  tag_v2 = "<CSAVRInputAIDSDeathsBySex MV2>"
 
-  ## .DP stores four rows for this modvar, but only uses rows 1 (males) and 3
-  ## (females)
-  fmt = list(cast=as.numeric, offset=2, nrow=2 * n.sex, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<CSAVRInputAIDSDeathsBySex MV>", fmt)
-  raw[raw==dp_not_avail] = NA
-  dat = cbind(strata.labels$sex,
-              data.frame(raw)[c(1,3),])
-  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  n_sex = length(strata.labels$sex)
+  n_src = length(strata.labels$csavr.source)
+
+  ## Spectrum stores time series of deaths for each sex (MV1) or each sex and
+  ## data source (MV2). Each time series includes two rows: the deaths data, and
+  ## a % completeness. The latter is not displayed or used by Spectrum, so we
+  ## do not extract it.
+  if (tag_v1 %in% dp.raw$Tag) {
+    fmt = list(cast=as.numeric, offset=2, nrow=2 * n_sex, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v1, fmt)[seq.int(1,3,2),]
+    dat = cbind(strata.labels$sex, NA, data.frame(raw))
+  } else {
+    fmt = list(cast=as.numeric, offset=2, nrow=2 * n_sex * n_src, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v2, fmt)[seq.int(1,12,2),]
+    dat = cbind(expand.grid(Sex=strata.labels$sex, Source=strata.labels$csavr.source), data.frame(raw))
+  }
+  dat[dat==dp_not_avail] = NA
+  colnames(dat) = c("Sex", "Source", sprintf("%d", first.year:final.year))
 
   if (direction == "long") {
-    dat = reshape2::melt(dat, id.vars="Sex", variable.name="Year", value.name="Value")
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Source"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    dat$Source = NULL
+  }
+
   return(dat)
 }
 
-#' Get input numbers of HIV-related deaths by sex and age
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame of input numbers of HIV-related deaths by age and sex
+#' @describeIn dp.inputs.csavr.deaths.source Adult AIDS deaths by year, sex, age, and data source.
 #' @export
 dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
-  n.sex = length(strata.labels$sex)
-  n.age = length(strata.labels$age.csavr)
+  tag_v1 = "<CSAVRInputAIDSDeathsBySexAge MV>"
+  tag_v2 = "<CSAVRInputAIDSDeathsBySexAge MV2>"
 
-  fmt = list(cast=as.numeric, offset=2, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
-  raw = extract.dp.tag(dp.raw, "<CSAVRInputAIDSDeathsBySexAge MV>", fmt)
-  raw[raw==dp_not_avail] = NA
-  dat = cbind(rep(strata.labels$sex, each=n.age),
-              rep(strata.labels$age.csavr, n.sex),
-              data.frame(raw))
-  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+  n_sex = length(strata.labels$sex)
+  n_age = length(strata.labels$age.csavr)
+  n_src = length(strata.labels$csavr.source)
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    fmt = list(cast=as.numeric, offset=2, nrow=n_sex * n_age, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v1, fmt)
+    dat = cbind(expand.grid(Age=strata.labels$age.csavr, Sex=strata.labels$sex), NA, data.frame(raw))
+  } else {
+    fmt = list(cast=as.numeric, offset=2, nrow=n_sex * n_age * n_src, ncol=final.year - first.year + 1)
+    raw = extract.dp.tag(dp.raw, tag_v2, fmt)
+    dat = cbind(expand.grid(Age=strata.labels$age.csavr, Sex=strata.labels$sex, Source=strata.labels$csavr.source), data.frame(raw))
+  }
+  dat[dat==dp_not_avail] = NA
+  colnames(dat) = c("Sex", "Age", "Source", sprintf("%d", first.year:final.year))
 
   if (direction == "long") {
-    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age", "Source"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    dat$Source = NULL
+  }
+
   return(dat)
 }
 
