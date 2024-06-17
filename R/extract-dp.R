@@ -905,7 +905,7 @@ dp.inputs.csavr.deaths.sex.age = function(dp.raw, direction="wide", first.year=N
     dat = cbind(expand.grid(Age=strata.labels$age.csavr, Sex=strata.labels$sex, Source=strata.labels$csavr.source), data.frame(raw))
   }
   dat[dat==dp_not_avail] = NA
-  colnames(dat) = c("Sex", "Age", "Source", sprintf("%d", first.year:final.year))
+  colnames(dat) = c("Age", "Sex", "Source", sprintf("%d", first.year:final.year))
 
   if (direction == "long") {
     dat = reshape2::melt(dat, id.vars=c("Sex", "Age", "Source"), variable.name="Year", value.name="Value")
