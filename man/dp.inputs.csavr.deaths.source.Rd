@@ -64,7 +64,7 @@ only allowed users to enter one source of data.
 \item \code{dp.inputs.csavr.deaths.source()}: The data source selected for use in
 CSAVR.
 
-\item \code{dp.inputs.csavr.deaths.source.names()}: User-specified names for each source of AIDS deaths data entered into CSAVR.
+\item \code{dp.inputs.csavr.deaths.source.names()}: User-specified name for each source of AIDS deaths data entered into CSAVR.
 
 \item \code{dp.inputs.csavr.deaths()}: Adult AIDS deaths by year and data source.
 

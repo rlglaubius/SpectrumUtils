@@ -1985,31 +1985,16 @@ dp.inputs.epp.adjustment.enabled = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<EPPPrevAdj MV>", fmt)[1,1] == 1)
 }
 
-#' Check if Spectrum used custom incidence rate ratios by age or sex
-#' @inheritParams dp.inputs.first.year
-#' @return TRUE if custom incidence rate ratios were used, FALSE otherwise
-#' @export
-dp.inputs.irr.custom = function(dp.raw, direction="wide") {
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
-  return(extract.dp.tag(dp.raw, "<IncEpidemicCustomFlagIdx MV>", fmt)[1,1]==1)
-}
-
-#' Check if Spectrum used incidence rate ratios by sex estimated by EPP
-#' @inheritParams dp.inputs.first.year
-#' @return TRUE if sex ratios from EPP were selected, FALSE otherwise
-#' @export
-dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
-  return(extract.dp.tag(dp.raw, "<SexRatioFromEPP MV>", fmt)[1,1] == 1)
-}
-
-#' Check which epidemic pattern is used to specify incidence rate ratios
-#' @inheritParams dp.inputs.first.year
-#' @return the epidemic pattern name as a factor (see "Details" below for factor levels)
+#' Get Spectrum inputs describing incidence by age and sex
+#'
+#' @describeIn dp.inputs.irr.age Incidence rate ratios by age relative to ages 25-29 for each sex
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
 #' @section Details:
 #'
 #'   Spectrum supports several ways of specifying epidemic patterns for
-#'   determining incidence patterns by sex and age:
+#'   determining incidence patterns by sex and age. The choice of pattern
+#'   can be extracted using \code{dp.inputs.irr.pattern}:
 #'   \enumerate{
 #'   \item{Generalized - default pattern for generalized epidemics}
 #'   \item{Concentrated non-IDU - default pattern for concentrated epidemics driven by transmission modes other than injection drug use}
@@ -2020,32 +2005,19 @@ dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
 #'   \item{CSAVR - pattern estimated while fitting CSAVR}
 #'   }
 #'
-#' @export
-dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
-  n.epi = length(strata.labels$epi.patterns)
-  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
-  dat = extract.dp.tag(dp.raw, "<IncEpidemicRGIdx MV>", fmt)[1,1]
-  dat = factor(dat, levels=0:(n.epi - 1), labels=strata.labels$epi.patterns)
-  return(dat)
-}
-
-#' Get Spectrum input HIV incidence rate ratios by sex
+#' Spectrum can estimate incidence by age and sex from HIV prevalence by age and
+#' sex from household surveys, or from a country's reported numbers of people on ART
+#' by age and sex. When fitting to HIV prevalence, countries could choose to use patterns
+#' that were fixed or varied over time. In older versions of Spectrum, these choices could be
+#' accessed via \code{dp.inputs.irr.pattern}. In current Spectrum versions, \code{dp.inputs.irr.pattern}
+#' just indicates whether a pattern was fitted to HIV prevalence or ART, then \code{dp.inputs.irr.fitted}
+#' is used to indicate the data source and model type:
+#' \enumerate{
+#' \item{HIV prevalence, Fixed incidence ratios over time}
+#' \item{HIV prevalence, time dependent incidence ratios}
+#' \item{ART by age}
+#' }
 #'
-#' Get the input ratio of female to male incidence.
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame.
-#' @export
-dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  tag = "<HIVSexRatio MV>"
-  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=3))
-}
-
-#' Get Spectrum input HIV incidence rate ratios by age
-#'
-#' Get the input rate ratios of incidence by age relative to ages 25-29,
-#' stratified by sex.
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame.
 #' @export
 dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -2065,6 +2037,54 @@ dp.inputs.irr.age = function(dp.raw, direction="wide", first.year=NULL, final.ye
   }
 
   return(dat)
+}
+
+#' @describeIn dp.inputs.irr.age Female-to-male incidence rate ratio
+#' @export
+dp.inputs.irr.sex = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<HIVSexRatio MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=3))
+}
+
+#' @describeIn dp.inputs.irr.age Return the epidemic pattern as a factor value.
+#' @export
+dp.inputs.irr.pattern = function(dp.raw, direction="wide") {
+  n.epi = length(strata.labels$epi.patterns)
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  dat = extract.dp.tag(dp.raw, "<IncEpidemicRGIdx MV>", fmt)[1,1]
+  dat = factor(dat, levels=0:(n.epi - 1), labels=strata.labels$epi.patterns)
+  return(dat)
+}
+
+#' @describeIn dp.inputs.irr.age Returns TRUE if incidence patterns have been entered manually, FALSE otherwise
+#' @export
+dp.inputs.irr.custom = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<IncEpidemicCustomFlagIdx MV>", fmt)[1,1]==1)
+}
+
+#' @describeIn dp.inputs.irr.age Returns TRUE if incidence rate ratios by sex were imported from EPP, FALSE otherwise
+#' @export
+dp.inputs.irr.sex.from.epp = function(dp.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  return(extract.dp.tag(dp.raw, "<SexRatioFromEPP MV>", fmt)[1,1] == 1)
+}
+
+#' @describeIn dp.inputs.irr.age Check what options were used to estimate incidence rate ratios.
+#' @export
+dp.inputs.irr.fitted = function(dp.raw, direction="wide") {
+  fmt_dat = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  fmt_irr = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  opt_dat = extract.dp.tag(dp.raw, "<SAPFitType MV>", fmt_dat)[1,1]
+  opt_irr = extract.dp.tag(dp.raw, "<HIVPrevModel MV>", fmt_irr)[1,1]
+  if (opt_dat == 0) {
+    rval = ifelse(opt_irr == 0, "HIV prevalence, Fixed incidence ratios over time", "HIV prevalence, time dependent incidence ratios")
+  } else if (opt_dat == 1) {
+    rval = "ART by age"
+  } else {
+    rval = "Unrecognized option"
+  }
+  return(rval)
 }
 
 #' Get the HIV-related fertility local adjustment factor

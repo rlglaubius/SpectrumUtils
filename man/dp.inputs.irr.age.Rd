@@ -2,7 +2,12 @@
 % Please edit documentation in R/extract-dp.R
 \name{dp.inputs.irr.age}
 \alias{dp.inputs.irr.age}
-\title{Get Spectrum input HIV incidence rate ratios by age}
+\alias{dp.inputs.irr.sex}
+\alias{dp.inputs.irr.pattern}
+\alias{dp.inputs.irr.custom}
+\alias{dp.inputs.irr.sex.from.epp}
+\alias{dp.inputs.irr.fitted}
+\title{Get Spectrum inputs describing incidence by age and sex}
 \usage{
 dp.inputs.irr.age(
   dp.raw,
@@ -10,6 +15,21 @@ dp.inputs.irr.age(
   first.year = NULL,
   final.year = NULL
 )
+
+dp.inputs.irr.sex(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.irr.pattern(dp.raw, direction = "wide")
+
+dp.inputs.irr.custom(dp.raw, direction = "wide")
+
+dp.inputs.irr.sex.from.epp(dp.raw, direction = "wide")
+
+dp.inputs.irr.fitted(dp.raw, direction = "wide")
 }
 \arguments{
 \item{dp.raw}{DemProj module data in raw format, as returned by
@@ -27,6 +47,50 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get the input rate ratios of incidence by age relative to ages 25-29,
-stratified by sex.
+Get Spectrum inputs describing incidence by age and sex
 }
+\section{Functions}{
+\itemize{
+\item \code{dp.inputs.irr.age()}: Incidence rate ratios by age relative to ages 25-29 for each sex
+
+\item \code{dp.inputs.irr.sex()}: Female-to-male incidence rate ratio
+
+\item \code{dp.inputs.irr.pattern()}: Return the epidemic pattern as a factor value.
+
+\item \code{dp.inputs.irr.custom()}: Returns TRUE if incidence patterns have been entered manually, FALSE otherwise
+
+\item \code{dp.inputs.irr.sex.from.epp()}: Returns TRUE if incidence rate ratios by sex were imported from EPP, FALSE otherwise
+
+\item \code{dp.inputs.irr.fitted()}: Check what options were used to estimate incidence rate ratios.
+
+}}
+\section{Details}{
+
+
+  Spectrum supports several ways of specifying epidemic patterns for
+  determining incidence patterns by sex and age. The choice of pattern
+  can be extracted using \code{dp.inputs.irr.pattern}:
+  \enumerate{
+  \item{Generalized - default pattern for generalized epidemics}
+  \item{Concentrated non-IDU - default pattern for concentrated epidemics driven by transmission modes other than injection drug use}
+  \item{Concentrated IDU - default pattern for concentrated epidemics driven by injection drug use}
+  \item{Fitted: fixed over time - deprecated, replaced by "Fitted to HIV prevalence or ART"}
+  \item{Fitted: time-varying - deprecated, replaced by "Fitted to HIV prevalence or ART"}
+  \item{Fitted to HIV prevalence or ART - pattern estimated from survey data}
+  \item{CSAVR - pattern estimated while fitting CSAVR}
+  }
+
+Spectrum can estimate incidence by age and sex from HIV prevalence by age and
+sex from household surveys, or from a country's reported numbers of people on ART
+by age and sex. When fitting to HIV prevalence, countries could choose to use patterns
+that were fixed or varied over time. In older versions of Spectrum, these choices could be
+accessed via \code{dp.inputs.irr.pattern}. In current Spectrum versions, \code{dp.inputs.irr.pattern}
+just indicates whether a pattern was fitted to HIV prevalence or ART, then \code{dp.inputs.irr.fitted}
+is used to indicate the data source and model type:
+\enumerate{
+\item{HIV prevalence, Fixed incidence ratios over time}
+\item{HIV prevalence, time dependent incidence ratios}
+\item{ART by age}
+}
+}
+
