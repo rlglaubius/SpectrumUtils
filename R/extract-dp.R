@@ -2014,7 +2014,7 @@ dp.inputs.epp.adjustment.enabled = function(dp.raw, direction="wide") {
 #' is used to indicate the data source and model type:
 #' \enumerate{
 #' \item{HIV prevalence, Fixed incidence ratios over time}
-#' \item{HIV prevalence, time dependent incidence ratios}
+#' \item{HIV prevalence, Time dependent incidence ratios}
 #' \item{ART by age}
 #' }
 #'
@@ -2078,7 +2078,7 @@ dp.inputs.irr.fitted = function(dp.raw, direction="wide") {
   opt_dat = extract.dp.tag(dp.raw, "<SAPFitType MV>", fmt_dat)[1,1]
   opt_irr = extract.dp.tag(dp.raw, "<HIVPrevModel MV>", fmt_irr)[1,1]
   if (opt_dat == 0) {
-    rval = ifelse(opt_irr == 0, "HIV prevalence, Fixed incidence ratios over time", "HIV prevalence, time dependent incidence ratios")
+    rval = ifelse(opt_irr == 0, "HIV prevalence, Fixed incidence ratios over time", "HIV prevalence, Time dependent incidence ratios")
   } else if (opt_dat == 1) {
     rval = "ART by age"
   } else {
