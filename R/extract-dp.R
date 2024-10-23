@@ -10,6 +10,7 @@ read.raw.dp = function(pjnz.file) {
   return(read.module.data(pjnz.file, extension="DP"))
 }
 
+#' @noRd
 extract.dp.tag = function(dp.raw, tag, fmt) {
   fmt$is.modvar = TRUE
   val = extract.raw.tag(dp.raw, tag, fmt)
@@ -2571,7 +2572,33 @@ dp.inputs.hiv.abortion = function(dp.raw, direction="wide", first.year=NULL, fin
   return(dat)
 }
 
-# Helper function for extracting CSAVR age-aggregated outputs organized by model, sex, and statistic
+#' Get breastfeeding patterns in mothers with HIV
+#'
+#' Breastfeeding practices in mothers with HIV are specified in Spectrum as the
+#' percentage of mothers who are not breastfeeding by year, child's age, and
+#' whether the mother is receiving ARVs to prevent vertical HIV transmission. Child's age
+#' is specified by two month intervals up to 36 months.
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.inputs.hiv.breastfeeding = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  lab_arv = strata.labels$arv.status
+  lab_age = strata.labels$age.breastfeeding
+  fmt = list(cast=as.numeric, offset=2, nrow=length(lab_arv)*length(lab_age), ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<InfantFeedingOptions MV>", fmt)
+  dat = cbind(rep(lab_arv, each=length(lab_age)), rep(lab_age, length(lab_arv)), data.frame(raw))
+  colnames(dat) = c("ARV", "Age", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("ARV","Age"), variable.name="Year", value.name="Value") ##
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' Helper function for extracting CSAVR age-aggregated outputs organized by model, sex, and statistic
+#' @noRd
 extract.csavr.output = function(tag, dp.raw, direction, first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}

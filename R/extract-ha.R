@@ -10,6 +10,7 @@ read.raw.ha = function(pjnz.file) {
   return(read.module.data(pjnz.file, extension="HA"))
 }
 
+#' @noRd
 extract.ha.tag = function(ha.raw, tag, fmt) {
   fmt$is.modvar = FALSE
   val = extract.raw.tag(ha.raw, tag, fmt)

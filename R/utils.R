@@ -61,7 +61,9 @@ read.module.data = function(pjnz.file, extension="DP") {
 #'   \code{fmt$cast} is a function used to cast the data from a string to a
 #'   desired type. For example, set \code{fmt$type=as.numeric} to return numeric
 #'   data.
-#' @export
+#'
+#' @usage extract.raw.tag(mod.raw, tag, fmt)
+#' @export extract.raw.tag
 extract.raw.tag = function(mod.raw, tag, fmt) {
   ind.tag = dplyr::first(which(mod.raw$Tag == tag))
   if (is.na(ind.tag)) {
@@ -89,6 +91,7 @@ read.raw.pjn = function(pjnz.file) {
   return(read.module.data(pjnz.file, "PJN"))
 }
 
+#' @noRd
 extract.pjn.tag = function(pjn.raw, tag, fmt) {
   fmt$is.modvar = FALSE
   return(extract.raw.tag(pjn.raw, tag, fmt))
@@ -100,7 +103,9 @@ extract.pjn.tag = function(pjn.raw, tag, fmt) {
 #' @return The projection name. This will usually match the PJNZ file name. This
 #'   may not be true if the PJNZ is renamed manually, such as by renaming it in
 #'   Windows Explorer.
-#' @export
+#'
+#' @usage extract.proj.name(pjn.raw)
+#' @export extract.proj.name
 extract.proj.name = function(pjn.raw) {
   fmt = list(cast=as.character, offset=2, nrow=1, ncol=1)
   dat = extract.pjn.tag(pjn.raw, "<Projection Name>", fmt)[1,1]
@@ -130,7 +135,8 @@ extract.proj.name = function(pjn.raw) {
 #'   not governed by any international organization and may not match codes used
 #'   for similar purposes by other organizations.
 #'
-#' @export
+#' @usage extract.geo.info(pjn.raw)
+#' @export extract.geo.info
 extract.geo.info = function(pjn.raw) {
   fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
   iso.raw = extract.pjn.tag(pjn.raw, "<Projection Parameters>", fmt)[1,1]

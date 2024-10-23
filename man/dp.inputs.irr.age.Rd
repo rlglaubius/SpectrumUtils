@@ -89,7 +89,7 @@ just indicates whether a pattern was fitted to HIV prevalence or ART, then \code
 is used to indicate the data source and model type:
 \enumerate{
 \item{HIV prevalence, Fixed incidence ratios over time}
-\item{HIV prevalence, time dependent incidence ratios}
+\item{HIV prevalence, Time dependent incidence ratios}
 \item{ART by age}
 }
 }
