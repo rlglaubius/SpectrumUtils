@@ -1030,6 +1030,38 @@ dp.inputs.adult.hiv.mortality.off.art = function(dp.raw, direction="wide") {
   return(dat)
 }
 
+#' Get rates of non-AIDS excess mortality among adults with HIV
+#' @param dp.raw DemProj module data in raw format, as returned by
+#'   \code{read.raw.dp}
+#' @param direction Request "wide" (default) or "long" format data.
+#' @return A data frame.
+#' @export
+dp.inputs.adult.hiv.mortality.nonaids = function(dp.raw, direction="wide") {
+  lab_sex = strata.labels$sex
+  lab_art = strata.labels$art.status
+  lab_age = strata.labels$age.cd4.adult
+  lab_cd4 = strata.labels$cd4.adult
+  lab_cat = c("Male, Off ART", "Male, On ART", "Female, Off ART", "Female, On ART")
+
+  n_sex = length(lab_sex)
+  n_age = length(lab_age)
+  n_cd4 = length(lab_cd4)
+  n_art = length(lab_art)
+
+  fmt = list(cast=as.numeric, offset=2, nrow=n_sex * n_art, ncol=n_age * n_cd4)
+  raw = extract.dp.tag(dp.raw, "<AdultNonAIDSExcessMort MV>", fmt)
+  dat = cbind(expand.grid(CD4=lab_cd4, Age=lab_age), data.frame(t(raw)))
+  colnames(dat) = c("CD4", "Age", lab_cat)
+  dat$CD4 = factor(dat$CD4, levels=lab_cd4)
+  if (direction == "long") {
+    dat = reshape2::melt(dat, measure.vars=lab_cat, variable.name="Category", value.name="Value")
+    dat$Sex = plyr::mapvalues(dat$Category, from=lab_cat, to=rep(lab_sex, each=n_art))
+    dat$ART = plyr::mapvalues(dat$Category, from=lab_cat, to=rep(lab_art, n_sex))
+    dat = dat[,c("ART", "Sex", "Age", "CD4", "Value")]
+  }
+  return(dat)
+}
+
 #' HIV-related mortality rates among adults on ART
 #'
 #' HIV-related mortality rate inputs to Spectrum are stratified by age, sex, CD4
@@ -2723,4 +2755,30 @@ dp.output.ua.data = function(pjnz.file, direction="wide", first.year=NULL, final
               Data       = dat_vals))
 }
 
+#' Get estimates of non-AIDS excess deaths
+#' @inheritParams dp.inputs.tfr
+#' @return A data frame.
+#' @export
+dp.output.deaths.nonaids.excess = function(dp.raw, direction = "wide", first.year = NULL, final.year = NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  lab_sex = strata.labels$sex.aug
+  lab_age = -1:80
+  lab_art = strata.labels$art.status
+
+  n_sex = length(lab_sex)
+  n_age = length(lab_age)
+  n_art = length(lab_art)
+
+  fmt = list(cast = as.numeric, offset=3, nrow=n_sex * n_age * n_art, ncol = final.year - first.year + 1)
+  raw = SpectrumUtils:::extract.dp.tag(dp.raw, "<NonAIDSExcessDeathsSingleAge MV>", fmt)
+  dat = cbind(expand.grid(ART=lab_art, Age=lab_age, Sex=lab_sex), data.frame(raw))
+  colnames(dat) = c("ART", "Age", "Sex", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars = c("Sex", "Age", "ART"), variable.name = "Year", value.name = "Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
 
