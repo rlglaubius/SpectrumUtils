@@ -32,7 +32,37 @@ strata.labels = list(
   csavr.source = c("Source 1", "Source 2", "Source 3"),
   epi.patterns = c("Generalized", "Concentrated non-IDU", "Concentrated IDU", "Custom", "Fitted: fixed over time", "Fitted: time-varying", "Fitted to HIV prevalence or ART", "CSAVR", "Web"),
   opt.region = c("Asia", "Central Africa", "Developed Countries", "East Africa", "Eastern Europe", "Latin America and Caribbean", "North Africa Middle East", "Southern Africa", "West Africa"),
-  month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+  month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
+
+  ## Goals ASM constants
+  ha.programs = c("Total",
+                  "ART",
+                  "PMTCT",
+                  "VMMC",
+                  "Oral PrEP",
+                  "Injectable PrEP",
+                  "Gel PrEP",
+                  "Ring PrEP",
+                  "Condom promotion",
+                  "Violence prevention",
+                  "HIV testing",
+                  "Social asset building",
+                  "Family planning",
+                  "Care giver programs",
+                  "Educational subsidies",
+                  "Cash transfers",
+                  "Economic empowerment",
+                  "Teachers trained",
+                  "Out of school youth",
+                  "Community mobilization",
+                  "FSW outreach",
+                  "MSM outreach",
+                  "MSM lubricants",
+                  "PWID outreach",
+                  "Needle and syringe exchange",
+                  "OST",
+                  "Program support")
+  )
 
 output.labels = list(
   value = "Value"
