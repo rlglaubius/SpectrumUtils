@@ -56,6 +56,10 @@ read.module.data = function(pjnz.file, extension="DP") {
 #'   \code{fmt$nrow}: Number of rows of data, relative to the starting tag row
 #'   number + \code{fmt$offset}
 #'
+#'   \code{fmt$offset_col}: (optional) the first row with data. If this is
+#'   omitted, the "Data" column is used. Since almost all tag data starts in
+#'   the "Data" column, \code{offset_col} usually is not needed.
+#'
 #'   \code{fmt$ncol}: Number of columns of data, relative to mod.raw$Data.
 #'
 #'   \code{fmt$cast} is a function used to cast the data from a string to a
@@ -72,7 +76,12 @@ extract.raw.tag = function(mod.raw, tag, fmt) {
 
   row.bgn = ind.tag + fmt$offset
   row.end = row.bgn + fmt$nrow - 1
-  col.bgn = which(colnames(mod.raw) == "Data")
+
+  if (is.null(fmt$offset_col)) {
+    col.bgn = which(colnames(mod.raw) == "Data")
+  } else {
+    col.bgn = fmt$offset_col
+  }
   col.end = col.bgn + fmt$ncol - 1
 
   raw.data = unlist(mod.raw[row.bgn:row.end, col.bgn:col.end])

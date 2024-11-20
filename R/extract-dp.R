@@ -1143,6 +1143,55 @@ dp.inputs.art.transmission.reduction = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<AdultInfectReduc MV>", fmt)[1,1])
 }
 
+#' Get inputs used to estimate knowledge of HIV status
+#' @describeIn dp.inputs.shiny90.program Data on HIV testing volumes and positive tests from programmatic reporting
+#' @inheritParams dp.inputs.adult.initial.cd4
+#' @return A data frame
+#' @export
+dp.inputs.shiny90.program = function(dp.raw, direction="wide") {
+  tag = "<Shiny90ProgramData MV>"
+  fmt_meta  = list(cast=as.numeric, offset=2, nrow=1, ncol=1, offset_col=3)
+  dat_meta = extract.dp.tag(dp.raw, tag, fmt_meta)
+
+  cnames = c("Year", "Sex",
+             "Total tests", "Total positive tests",
+             "Total HTS tests", "Total positive HTS tests",
+             "Total ANC tests", "Total positive ANC tests")
+  fmt_data = list(cast=as.numeric, offset=3, nrow=dat_meta[1], ncol=length(cnames), offset_col=3)
+  raw_data = data.frame(extract.dp.tag(dp.raw, tag, fmt_data))
+  colnames(raw_data) = cnames
+  raw_data$Sex = factor(raw_data$Sex, levels=0:2, labels=strata.labels$sex.aug)
+  raw_data[raw_data==dp_not_avail] = NA
+  if (direction=="long") {
+    dat = reshape2::melt(raw_data, id.vars=c("Sex", "Year"), variable.name="Type", value.name="Value")
+  } else {
+    dat = raw_data
+  }
+  return(dat)
+}
+
+#' Get inputs used to estimate knowledge of HIV status
+#' @describeIn dp.inputs.shiny90.program Data on HIV testing history from population-based surveys
+#' @inheritParams dp.inputs.adult.initial.cd4
+#' @return A data frame
+#' @export
+dp.inputs.shiny90.survey = function(dp.raw, direction="wide") {
+  tag = "<Shiny90SurveyData MV>"
+  fmt_meta  = list(cast=as.numeric, offset=2, nrow=1, ncol=1, offset_col=3)
+  dat_meta = extract.dp.tag(dp.raw, tag, fmt_meta)
+
+  cnames = c("SurveyID", "Year", "Age", "Sex", "HIV", "Value", "StdErr", "Lower", "Upper", "Count")
+  ncol = length(cnames)
+  fmt_data = list(cast=as.character, offset=3, nrow=dat_meta[1], ncol=ncol, offset_col=3)
+  raw_data = data.frame(extract.dp.tag(dp.raw, tag, fmt_data))
+  colnames(raw_data) = cnames
+  raw_data[,2:ncol] = sapply(raw_data[,2:ncol], as.numeric)
+  raw_data$Sex = factor(raw_data$Sex, levels=0:2, labels=strata.labels$sex.aug)
+  raw_data$Age = factor(raw_data$Age, levels=0:4, labels=strata.labels$age.s90)
+  raw_data$HIV = factor(raw_data$HIV, levels=0:2, labels=c("All", "Negative", "Positive"))
+  return(raw_data)
+}
+
 #' Get Spectrum's calculated number of births
 #'
 #' Get Spectrum's calculated number of births by year in long or wide format.

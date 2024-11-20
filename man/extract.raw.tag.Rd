@@ -45,6 +45,10 @@ Read raw Spectrum data from a given module
   \code{fmt$nrow}: Number of rows of data, relative to the starting tag row
   number + \code{fmt$offset}
 
+  \code{fmt$offset_col}: (optional) the first row with data. If this is
+  omitted, the "Data" column is used. Since almost all tag data starts in
+  the "Data" column, \code{offset_col} usually is not needed.
+
   \code{fmt$ncol}: Number of columns of data, relative to mod.raw$Data.
 
   \code{fmt$cast} is a function used to cast the data from a string to a
