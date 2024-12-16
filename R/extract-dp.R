@@ -1311,6 +1311,31 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
   return(dat)
 }
 
+#' Get the number of people initiating ART
+#'
+#' Get the number of people initiating ART by year, sex, and five-year age
+#' group.
+#' @inheritParams dp.inputs.tfr
+#' @return a data frame.
+#' @export
+dp.output.art.initiations = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  lab_sex = strata.labels$sex
+  lab_age = c("0-80+", strata.labels$age.5yr)
+  fmt = list(cast=as.numeric, offset=3, nrow=length(lab_sex) * length(lab_age), ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<AdultsChildrenStartingART MV>", fmt)
+  dat = cbind(expand.grid(Age=lab_age, sex=lab_sex), data.frame(raw))
+  colnames(dat) = c("Age", "Sex", sprintf("%d", first.year:final.year))
+  dat = dat[dat$Age != "0-80+",] # All-ages rows are suppressed because they are not populated by Spectrum
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Yea))
+  }
+  return(dat)
+}
 
 #' Get Spectrum's calculated number in need of ART
 #'
