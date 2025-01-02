@@ -28,6 +28,7 @@ strata.labels = list(
   pmtct_time    = c("Prenatal", "Postnatal"),
   pmtct_regimen = c("Single dose NVP", "Dual ARV", "Option A", "Option B", "ART started before current pregnancy", "ART started during current pregnancy at least 4 weeks before delivery", "ART started during current pregnancy < 4 weeks before delivery"),
   kos.source = c("Case reports", "Shiny90", "CSAVR", "ECDC", "Direct"),
+  vls.source = c("Routine data", "Survey data"),
   incidence.model = c("Direct", "EPP", "AEM", "CSAVR", "Mortality", "ECDC"),
   csavr.model = c("None", "Double logistic", "Single logistic", "Splines - 5 knots", "rLogistic", "Splines - 4 knots", "Splines - 3 knots"),
   csavr.source = c("Source 1", "Source 2", "Source 3"),

@@ -2325,6 +2325,10 @@ dp.inputs.adult.ltfu.monthly = function(dp.raw, direction="wide") {
 #'   in files saved with these versions. Spectrum 6.29 and later can save data
 #'   for every year in a projection, though countries may not input anything in
 #'   most years.
+#'
+#'   Viral suppression inputs can be entered from household surveys ("Survey data") or from
+#'   laboratory, programme, or case surveillance data ("Routine data"). \code{dp.inputs.viral.suppression.source}
+#'   indicates which option was selected.
 #' @export
 dp.inputs.viral.suppression = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
@@ -2361,6 +2365,15 @@ dp.inputs.viral.suppression = function(dp.raw, direction="wide", first.year=NULL
 dp.inputs.viral.suppression.threshold = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<ViralSuppressionThreshold MV4>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.viral.suppression Indicates whether viral suppression data come from surveys or program data
+#' @export
+dp.inputs.viral.suppression.source = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ViralSuppressionInputType MV2>"
+  fmt = list(cast=as.numeric, offset=2, nrow=1, ncol=1)
+  val = factor(extract.dp.tag(dp.raw, tag, fmt)[1,1], levels=0:1, labels=strata.labels$vls.source)
+  return(val)
 }
 
 #' Get HIV prevalence data entered from household surveys

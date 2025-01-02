@@ -3,6 +3,7 @@
 \name{dp.inputs.viral.suppression}
 \alias{dp.inputs.viral.suppression}
 \alias{dp.inputs.viral.suppression.threshold}
+\alias{dp.inputs.viral.suppression.source}
 \title{Get viral suppression inputs}
 \usage{
 dp.inputs.viral.suppression(
@@ -13,6 +14,13 @@ dp.inputs.viral.suppression(
 )
 
 dp.inputs.viral.suppression.threshold(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.viral.suppression.source(
   dp.raw,
   direction = "wide",
   first.year = NULL,
@@ -43,11 +51,17 @@ Some versions of Spectrum only allowed viral suppression data to be
   in files saved with these versions. Spectrum 6.29 and later can save data
   for every year in a projection, though countries may not input anything in
   most years.
+
+  Viral suppression inputs can be entered from household surveys ("Survey data") or from
+  laboratory, programme, or case surveillance data ("Routine data"). \code{dp.inputs.viral.suppression.source}
+  indicates which option was selected.
 }
 \section{Functions}{
 \itemize{
 \item \code{dp.inputs.viral.suppression()}: Numbers of people who had a viral load measured and numbers who were virally suppressed
 
 \item \code{dp.inputs.viral.suppression.threshold()}: The threshold (in virus copies/mL) used to classify people as virally suppressed
+
+\item \code{dp.inputs.viral.suppression.source()}: Indicates whether viral suppression data come from surveys or program data
 
 }}
