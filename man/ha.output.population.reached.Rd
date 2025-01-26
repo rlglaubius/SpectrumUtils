@@ -2,9 +2,17 @@
 % Please edit documentation in R/extract-ha.R
 \name{ha.output.population.reached}
 \alias{ha.output.population.reached}
-\title{Get the number of people reached by HIV interventions}
+\alias{ha.output.resources.required}
+\title{Get estimates of financial resource needs for HIV programming}
 \usage{
 ha.output.population.reached(
+  ha.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+ha.output.resources.required(
   ha.raw,
   direction = "wide",
   first.year = NULL,
@@ -25,7 +33,16 @@ will be filled in using \code{ha.inputs.final.year()}}
 }
 \value{
 a data frame
+
+a data frame
 }
 \description{
-Get the number of people reached by HIV interventions
+Get estimates of financial resource needs for HIV programming
 }
+\section{Functions}{
+\itemize{
+\item \code{ha.output.population.reached()}: Get the number of people reached by HIV interventions
+
+\item \code{ha.output.resources.required()}: Get the financial resource needs for each HIV intervention
+
+}}

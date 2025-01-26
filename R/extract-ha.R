@@ -329,8 +329,8 @@ ha.output.transmitted = function(ha.raw, direction="wide", first.year=NULL, fina
   return(dat)
 }
 
-#' Get the number of people reached by HIV interventions
-#'
+#' Get estimates of financial resource needs for HIV programming
+#' @describeIn ha.output.population.reached Get the number of people reached by HIV interventions
 #' @inheritParams ha.output.transmitted
 #' @return a data frame
 #' @export
@@ -357,3 +357,33 @@ ha.output.population.reached = function(ha.raw, direction="wide", first.year=NUL
 
   return(dat)
 }
+
+#' @describeIn ha.output.population.reached Get the financial resource needs for each HIV intervention
+#' @inheritParams ha.output.transmitted
+#' @return a data frame
+#' @export
+ha.output.resources.required = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  lab_sex  = strata.labels$sex.aug
+  lab_age  = c("15+", strata.labels$age.cd4.adult)
+  lab_prog = strata.labels$ha.programs
+
+  num_sex  = length(lab_sex)
+  num_age  = length(lab_age)
+  num_prog = length(lab_prog)
+
+  fmt = list(cast=as.numeric, offset=4, nrow=num_sex * num_age * num_prog, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, "<Result Costs>", fmt)
+  dat = cbind(expand.grid(Program=lab_prog, Age=lab_age, Sex=lab_sex), data.frame(raw))
+  colnames(dat) = c("Program", "Age", "Sex", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age", "Program"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
+
