@@ -1322,7 +1322,7 @@ dp.output.migr.plhiv = function(dp.raw, direction="wide", first.year=NULL, final
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
 
   n.sex = length(strata.labels$sex)
-  n.age = 81
+  n.age = length(strata.labels$age)
 
   fmt = list(cast=as.numeric, offset=3, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
   raw = extract.dp.tag(dp.raw, "<HIVMigrBySingleAge MV>", fmt)
