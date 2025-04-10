@@ -1311,6 +1311,34 @@ dp.output.artpop = function(dp.raw, direction="wide", first.year=NULL, final.yea
   return(dat)
 }
 
+#' Estimated numbers of net migrants with HIV
+#'
+#' Get the estimated numbers of net migrants with HIV by year, sex, and age
+#' @inheritParams dp.inputs.tfr
+#' @return a data frame.
+#' @export
+dp.output.migr.plhiv = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+
+  n.sex = length(strata.labels$sex)
+  n.age = 81
+
+  fmt = list(cast=as.numeric, offset=3, nrow=n.sex * n.age, ncol=final.year - first.year + 1)
+  raw = extract.dp.tag(dp.raw, "<HIVMigrBySingleAge MV>", fmt)
+  dat = cbind(rep(strata.labels$sex, each=length(strata.labels$age)),
+              rep(strata.labels$age, length(strata.labels$sex)),
+              data.frame(raw))
+  colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
+
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
 #' Get the number of people initiating ART
 #'
 #' Get the number of people initiating ART by year, sex, and five-year age
