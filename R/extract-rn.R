@@ -7,13 +7,13 @@
 #' rn.data = read.data.rn("Antarctica.PJNZ")
 #' @export
 read.raw.rn = function(pjnz.file) {
-  return(SpectrumUtils:::read.module.data(pjnz.file, extension="RN"))
+  return(read.module.data(pjnz.file, extension="RN"))
 }
 
 #' @noRd
 extract.rn.tag = function(rn.raw, tag, fmt) {
   fmt$is.modvar = TRUE
-  val = SpectrumUtils:::extract.raw.tag(rn.raw, tag, fmt)
+  val = extract.raw.tag(rn.raw, tag, fmt)
   if (is.null(val)) {
     val = matrix(NA, nrow=fmt$nrow, ncol=fmt$ncol)
   }
@@ -73,17 +73,3 @@ rn.inputs.coverage = function(rn.raw, direction="wide", first.year, final.year) 
 
   return(dat)
 }
-
-
-
-## NOTE: I hope this works, but am not sure if path.expand('~') will do the right thing on Parallels
-pjnz_path = sprintf("%s/../Avenir Health Dropbox/Avenir Shared Drive/Projects/Models/Goals/2025/HIV Control Modelling/Goals files", path.expand("~"))
-pjnz_name = "Kenya 2024.PJNZ"
-pjnz_full = sprintf("%s/%s", pjnz_path, pjnz_name)
-
-rn = read.raw.rn(pjnz_full)
-dp = read.raw.dp(pjnz_full)
-
-year_first = dp.inputs.first.year(dp)
-year_final = dp.inputs.final.year(dp)
-coverage = rn.inputs.coverage(rn, direction="long", first.year=year_first, final.year=year_final)
