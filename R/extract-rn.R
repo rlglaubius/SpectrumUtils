@@ -20,37 +20,6 @@ extract.rn.tag = function(rn.raw, tag, fmt) {
   return(val)
 }
 
-strata.labels = list(
-  rnm.programs = c( # TODO: Add to extract-const.R in SpectrumUtils
-    "General population: Community mobilization",
-    "General population: Mass media",
-    "General population: Voluntary counseling and testing",
-    "General population: Condom provision",
-    "General population: Primary students with teachers trained in AIDS",
-    "General population: Secondary students with teachers trained in AIDS",
-    "General population: Out-of-school youth reached",
-    "General population: Young women and girls (15-24) receiving cash transfers",
-    "General population: Workforce receiving STI treatment", # NOTE: May not be active in UI, but is present in .RN
-    "Key populations: Female sex workers reached by intervention",
-    "Key populations: Male sex workers reached by intervention",
-    "Key populations: MSMs reached by intervention per year",
-    "Key populations: MSMs receiving lubricants",
-    "Key populations: PWID receiving harm reduction intervention",
-    "Key populations: PWID receiving counseling and testing",
-    "Key populations: PWID receiving community outreach and peer education",
-    "Key populations: PWID receiving needle and syringe exchange",
-    "Key populations: PWID receiving drug substitution",
-    "Male circumcision: Males 15-49 circumcised",
-    "Male circumcision: Infant males circumcised", # NOTE: Not active in UI, but is present in .RN
-    "Medical services: Males with STI receiving treatment",
-    "Medical services: Females with STI receiving treatment",
-    "Medical services: Units of blood for transfusion tested",
-    "Medical services: Post-exposure prophylaxis need that is met",
-    "Medical services: Unsafe injections replaced with AD syringes", # NOTE: AD=auto-destruct.
-    "Medical services: Reduction in number of other injections",
-    "Medical services: Hospital beds covered by universal precautions")
-)
-
 #' Resource needs module (RNM) coverage inputs inputs
 #' @param rn.raw RNM module data in raw format, as returned by
 #'   \code{read.raw.rn()}
@@ -63,7 +32,7 @@ rn.inputs.coverage = function(rn.raw, direction="wide", first.year, final.year) 
   fmt = list(cast=as.numeric, offset=3, nrow=27, ncol=final.year-first.year+2)
   raw = data.frame(extract.rn.tag(rn.raw, "<Coverage MV>", fmt))
   colnames(raw) = c("ID", first.year:final.year)
-  dat = cbind(Program=strata.labels$rnm.programs, raw)
+  dat = cbind(Program=strata.labels$rn.programs, raw)
   dat$ID = NULL
 
   if (direction=="long") {
