@@ -9,7 +9,7 @@
 #' @export
 read.module.data = function(pjnz.file, extension="DP") {
   grep.str = sprintf("\\.%s$", extension)
-  mod.file = grep(grep.str, unzip(pjnz.file, list=TRUE)$Name, value=TRUE)
+  mod.file = grep(grep.str, utils::unzip(pjnz.file, list=TRUE)$Name, value=TRUE)
   if (length(mod.file) == 0) {
     warning(sprintf("No data for module '%s' in %s", extension, pjnz.file))
     mod.data = NULL
