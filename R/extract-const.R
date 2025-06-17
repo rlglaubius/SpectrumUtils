@@ -65,6 +65,15 @@ strata.labels = list(
                   "OST",
                   "Program support"),
 
+  hv.pop = c(
+    "Adults",
+    "Not at risk",
+    "Low risk heterosexual",
+    "Medium risk heterosexual",
+    "High risk heterosexual",
+    "People who inject drugs",
+    "Men who have sex with men"),
+
   rn.programs = c(
     "General population: Community mobilization",
     "General population: Mass media",

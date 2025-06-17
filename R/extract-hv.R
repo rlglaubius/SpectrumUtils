@@ -66,3 +66,27 @@ hv.inputs.art.effect = function(hv.raw, direction="wide", first.year=NULL, final
   }
   return(dat)
 }
+
+#' Extract survey and study data used for model fitting
+#' @inheritParams hv.inputs.first.year
+#' @return A data frame.
+#' @export
+hv.inputs.calibration.data = function(hv.raw, direction="wide") {
+  tag = "<FitData MV>"
+
+  ## 1. Extract the number of rows of calibration data
+  nrow_fmt = list(cast=as.numeric, offset=2, offset_col=3, nrow=1, ncol=1)
+  nrow_val = extract.hv.tag(hv.raw, tag, nrow_fmt)[1]
+
+  ## 2. Extract the calibration data
+  data_fmt = list(cast=as.numeric, offset=3, offset_col=2, nrow=nrow_val, ncol=8)
+  data_raw = as.data.frame(extract.hv.tag(hv.raw, tag, data_fmt))
+  colnames(data_raw) = c("Population", "Sex", "Year", "Estimate", "Lower", "Upper", "N", "UseInFit")
+
+  data_raw$Population = factor(data_raw$Population, levels=0:6, labels=strata.labels$hv.pop)
+  data_raw$Sex = factor(data_raw$Sex, levels=0:2, labels=strata.labels$sex.aug)
+  data_raw$UseInFit = (data_raw$UseInFit == 1)
+
+  return(data_raw)
+}
+
