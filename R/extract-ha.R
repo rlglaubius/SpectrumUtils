@@ -235,7 +235,7 @@ ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL
 
 #' @describeIn ha.inputs.condom.use Input male circumcision prevalence by year and age group
 #' @export
-ha.inputs.circumcision = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+ha.inputs.male.circumcision = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
   if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
 
