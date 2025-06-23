@@ -3,7 +3,7 @@
 \name{ha.inputs.condom.use}
 \alias{ha.inputs.condom.use}
 \alias{ha.inputs.viral.suppression}
-\alias{ha.inputs.circumcision}
+\alias{ha.inputs.male.circumcision}
 \title{HIV program coverage inputs}
 \usage{
 ha.inputs.condom.use(
@@ -20,7 +20,7 @@ ha.inputs.viral.suppression(
   final.year = NULL
 )
 
-ha.inputs.circumcision(
+ha.inputs.male.circumcision(
   ha.raw,
   direction = "wide",
   first.year = NULL,
@@ -51,6 +51,6 @@ HIV program coverage inputs
 
 \item \code{ha.inputs.viral.suppression()}: Input levels of viral suppression on ART by year, sex, and age group
 
-\item \code{ha.inputs.circumcision()}: Input male circumcision prevalence by year and age group
+\item \code{ha.inputs.male.circumcision()}: Input male circumcision prevalence by year and age group
 
 }}
