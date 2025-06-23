@@ -7,7 +7,16 @@
 #' ha.data = read.data.ha("Antarctica.PJNZ")
 #' @export
 read.raw.ha = function(pjnz.file) {
-  return(read.module.data(pjnz.file, extension="HA"))
+  raw = read.module.data(pjnz.file, extension="HA")
+
+  ## Goals ASM tags are stored in HAModData. Many of these include a leading
+  ## whitespace. This would cause extract.raw.tag() to fail unless the
+  ## whitespace is passed to extract.raw.tag(tag=tag_name) as part of tag_name.
+  ## Rather than do that, and cause SpectrumUtils to break if the whitespace is
+  ## ever stripped from the tag, we instead just strip leading and trailing
+  ## whitespace from all tags here to preempt any such change.
+  raw$Tag = trimws(raw$Tag)
+  return(raw)
 }
 
 #' @noRd
@@ -219,6 +228,29 @@ ha.inputs.viral.suppression = function(ha.raw, direction="wide", first.year=NULL
   colnames(dat) = c("Sex", "Age", sprintf("%d", first.year:final.year))
   if (direction == "long") {
     dat = reshape2::melt(dat, id.vars=c("Sex", "Age"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
+#' @describeIn ha.inputs.condom.use Input male circumcision prevalence by year and age group
+#' @export
+ha.inputs.circumcision = function(ha.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = ha.inputs.first.year(ha.raw)}
+  if (is.null(final.year)) {final.year = ha.inputs.final.year(ha.raw)}
+
+  ## The block contains a mix of strings and numbers, so we extract as-is using
+  ## cast=I to suppressed cast-to-NA warnings. Then we extract the numeric data
+  ## and cast-to-numeric manually.
+  ind_age = seq(1,31,5)
+  fmt = list(cast=I, offset=1, nrow=34, ncol=final.year-first.year+1)
+  raw = extract.ha.tag(ha.raw, "<Male Circumcision By Age>", fmt)
+  raw = raw[ind_age + 3,] # Extract the rows with annual data.
+  val = matrix(as.numeric(raw), nrow=nrow(raw))
+  dat = cbind(Age = strata.labels$age.5yr[4:10], data.frame(val))
+  colnames(dat) = c("Age", sprintf("%d", first.year:final.year))
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Age"), variable.name="Year", value.name="Value")
     dat$Year = as.numeric(as.character(dat$Year))
   }
   return(dat)
