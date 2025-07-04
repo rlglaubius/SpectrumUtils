@@ -74,6 +74,12 @@ strata.labels = list(
     "People who inject drugs",
     "Men who have sex with men"),
 
+  hv.vax = c("All",
+             "Unvaccinated",
+             "Vaccinated, take",
+             "Vaccinated, partial",
+             "Vaccinated, unprotected"),
+
   rn.programs = c(
     "General population: Community mobilization",
     "General population: Mass media",
@@ -107,5 +113,22 @@ strata.labels = list(
 output.labels = list(
   value = "Value"
 )
+
+# hv.pop = c(
+#   "Adults",
+#   "Not at risk",
+#   "Low risk heterosexual",
+#   "Medium risk heterosexual",
+#   "High risk heterosexual",
+#   "People who inject drugs",
+#   "Men who have sex with men"),
+
+strata.labels$hv.hiv = c("Negative", "Primary", strata.labels$cd4.adult)
+strata.labels$hv.pop.ext = c("All",
+                             strata.labels$hv.pop[2:7],
+                             "MSM, low risk",
+                             "MSM, medium risk",
+                             "MSM, high risk",
+                             "MSM who inject drugs")
 
 dp_not_avail = -9999 # Value used to indicate missing data in DemProj

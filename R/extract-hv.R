@@ -90,3 +90,51 @@ hv.inputs.calibration.data = function(hv.raw, direction="wide") {
   return(data_raw)
 }
 
+#' Get the estimated numbers of adults ages 15-49 in each model compartment over
+#' time.
+#' @inheritParams hv.inputs.art.effect
+#' @return A data frame.
+#' @export
+hv.output.adults = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = hv.inputs.first.year(hv.raw)}
+  if (is.null(final.year)) {final.year = hv.inputs.final.year(hv.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, offset_col=6, nrow=3302, ncol=final.year-first.year+1)
+  raw = extract.hv.tag(hv.raw, "<Adults MV>", fmt)
+
+  lab_sex = strata.labels$sex.aug
+  lab_pop = strata.labels$hv.pop.ext
+  lab_hiv = c("Negative", "Primary", strata.labels$cd4.adult, "Unused", "Unused", "Unused",
+              sprintf("ART_%s", strata.labels$cd4.adult), "All")
+  lab_vax = strata.labels$hv.vax
+
+  num_sex = length(lab_sex)
+  num_pop = length(lab_pop)
+  num_hiv = length(lab_hiv)
+  num_vax = length(lab_vax)
+
+  ## The Adults output includes a block for males+females, but no values are
+  ## written to that block, so SpectrumUtils ignores it
+  num_block = num_pop * num_hiv * num_vax
+  rows_m = 1:num_block + 1 + num_block
+  rows_f = 1:num_block + 2 + num_block * 2
+
+  block_m = cbind(Sex=strata.labels$sex[1], expand.grid(Vax=lab_vax, HIV=lab_hiv, Population=lab_pop), data.frame(raw[rows_m,]))
+  block_f = cbind(Sex=strata.labels$sex[2], expand.grid(Vax=lab_vax, HIV=lab_hiv, Population=lab_pop), data.frame(raw[rows_f,]))
+
+  dat = dplyr::bind_rows(dplyr::filter(block_m, Vax != "All" & Population != "All" & HIV != "All" & HIV != "Unused"),
+                         dplyr::filter(block_f, Vax != "All" & Population != "All" & HIV != "All" & HIV != "Unused"))
+
+  dat$ART = FALSE
+  dat$ART[grep("ART_", dat$HIV)] = TRUE
+  dat$HIV = gsub("ART_", "", dat$HIV)
+  dat = dplyr::select(dat, "Sex", "Population", "HIV", "ART", "Vax", dplyr::everything())
+  colnames(dat) = c("Sex", "Population", "HIV", "ART", "Vax", sprintf("%d", first.year:final.year))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Population", "HIV", "ART", "Vax"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
