@@ -2,19 +2,40 @@
 % Please edit documentation in R/extract-hv.R
 \name{hv.inputs.calibration.data}
 \alias{hv.inputs.calibration.data}
-\title{Extract survey and study data used for model fitting}
+\alias{hv.inputs.hiv.prevalence}
+\title{Extract data used for model fitting}
 \usage{
 hv.inputs.calibration.data(hv.raw, direction = "wide")
+
+hv.inputs.hiv.prevalence(
+  hv.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
 }
 \arguments{
 \item{hv.raw}{Goals module data in raw format, as returned by
 \code{read.raw.hv()}}
 
 \item{direction}{Ignored; included for compatibility with similar functions.}
+
+\item{first.year}{First year of the projection. If \code{first.year=NULL}, it
+will be filled in using \code{hv.inputs.first.year()}}
+
+\item{final.year}{Final year of the projection. If \code{final.year=NULL}, it
+will be filled in using \code{hv.inputs.final.year()}}
 }
 \value{
 A data frame.
 }
 \description{
-Extract survey and study data used for model fitting
+Extract data used for model fitting
 }
+\section{Functions}{
+\itemize{
+\item \code{hv.inputs.calibration.data()}: Survey-based and study-based HIV prevalence estimates
+
+\item \code{hv.inputs.hiv.prevalence()}: HIV prevalence time trends
+
+}}

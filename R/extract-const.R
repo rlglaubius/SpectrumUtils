@@ -114,15 +114,6 @@ output.labels = list(
   value = "Value"
 )
 
-# hv.pop = c(
-#   "Adults",
-#   "Not at risk",
-#   "Low risk heterosexual",
-#   "Medium risk heterosexual",
-#   "High risk heterosexual",
-#   "People who inject drugs",
-#   "Men who have sex with men"),
-
 strata.labels$hv.hiv = c("Negative", "Primary", strata.labels$cd4.adult)
 strata.labels$hv.pop.ext = c("All",
                              strata.labels$hv.pop[2:7],

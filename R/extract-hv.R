@@ -67,27 +67,70 @@ hv.inputs.art.effect = function(hv.raw, direction="wide", first.year=NULL, final
   return(dat)
 }
 
-#' Extract survey and study data used for model fitting
+#' Extract data used for model fitting
 #' @inheritParams hv.inputs.first.year
 #' @return A data frame.
+#' @describeIn hv.inputs.calibration.data Survey-based and study-based HIV prevalence estimates
 #' @export
 hv.inputs.calibration.data = function(hv.raw, direction="wide") {
-  tag = "<FitData MV>"
+  tag_v1 = "<FitData MV>"
+  tag_v2 = "<FitData MV2>"
+
+  if (tag_v1 %in% hv.raw$Tag) {tag=tag_v1}
+  if (tag_v2 %in% hv.raw$Tag) {tag=tag_v2}
 
   ## 1. Extract the number of rows of calibration data
   nrow_fmt = list(cast=as.numeric, offset=2, offset_col=3, nrow=1, ncol=1)
   nrow_val = extract.hv.tag(hv.raw, tag, nrow_fmt)[1]
 
   ## 2. Extract the calibration data
-  data_fmt = list(cast=as.numeric, offset=3, offset_col=2, nrow=nrow_val, ncol=8)
-  data_raw = as.data.frame(extract.hv.tag(hv.raw, tag, data_fmt))
-  colnames(data_raw) = c("Population", "Sex", "Year", "Estimate", "Lower", "Upper", "N", "UseInFit")
+  if (tag==tag_v1) {
+    cnames=c("Population", "Sex", "Year", "Estimate", "Lower", "Upper", "N", "UseInFit")
+    data_fmt = list(cast=as.numeric, offset=3, offset_col=2, nrow=nrow_val, ncol=length(cnames))
+    data_raw = as.data.frame(extract.hv.tag(hv.raw, tag, data_fmt))
+  }
+
+  if (tag==tag_v2) {
+    cnames=c("Population", "Sex", "Year", "Estimate", "Lower", "Upper", "N", "UseInFit", "Source")
+    data_fmt = list(cast=as.character, offset=3, offset_col=2, nrow=nrow_val, ncol=length(cnames))
+    data_raw = as.data.frame(extract.hv.tag(hv.raw, tag, data_fmt))
+    for (k in 1:(length(cnames)-1)) {
+      data_raw[,k] = as.numeric(data_raw[,k])
+    }
+  }
+  colnames(data_raw) = cnames
 
   data_raw$Population = factor(data_raw$Population, levels=0:6, labels=strata.labels$hv.pop)
   data_raw$Sex = factor(data_raw$Sex, levels=0:2, labels=strata.labels$sex.aug)
   data_raw$UseInFit = (data_raw$UseInFit == 1)
 
   return(data_raw)
+}
+
+#' @inheritParams hv.inputs.art.effect
+#' @describeIn hv.inputs.calibration.data HIV prevalence time trends
+#' @export
+hv.inputs.hiv.prevalence = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = hv.inputs.first.year(hv.raw)}
+  if (is.null(final.year)) {final.year = hv.inputs.final.year(hv.raw)}
+
+  fmt = list(cast=as.numeric, offset=3, nrow=40, ncol=final.year-first.year+1)
+  raw = extract.hv.tag(hv.raw, "<Prevalence MV>", fmt)
+  dat = cbind(Population = c(strata.labels$hv.pop.ext,
+                             strata.labels$sex.aug[2],
+                             strata.labels$hv.pop.ext[1:6],
+                             strata.labels$sex.aug[3],
+                             strata.labels$sex.aug[1]),
+              data.frame(raw[seq(2, 40, 2),]))
+  colnames(dat) = c("Population", sprintf("%d", first.year:final.year))
+  dat = dat[dat$Population != "All",] # drop unused rows
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Population"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
 }
 
 #' Get the estimated numbers of adults ages 15-49 in each model compartment over
