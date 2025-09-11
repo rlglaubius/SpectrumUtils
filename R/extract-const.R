@@ -80,6 +80,29 @@ strata.labels = list(
              "Vaccinated, partial",
              "Vaccinated, unprotected"),
 
+  prep.methods = c(
+    "Oral (daily)" = 24,
+    "Ring" = 27,
+    "Oral (monthly)" = 33,
+    "Oral + contraceptive" = 34,
+    "Injectable (one month)" = 25,
+    "Injectable (two months)" = 35,
+    "Injectable (six months)" = 36,
+    "bNABs" = 37,
+    "Implant" = 38,
+    "PEP" = 39),
+
+  risk.groups = c(
+    "Low risk heterosexual" = 2,
+    "Medium risk heterosexual" = 3,
+    "High risk heterosexual" = 4,
+    "People Who Inject Drugs (PWID)" = 5,
+    "Men who have sex with men" = 6,
+    "MSM: low risk" = 7,
+    "MSM: med risk" = 8,
+    "MSM: high risk" = 9,
+    "MSM: PWID" = 10),
+
   rn.programs = c(
     "General population: Community mobilization",
     "General population: Mass media",
