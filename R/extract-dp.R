@@ -1871,24 +1871,38 @@ dp.inputs.pmtct.retention.postnatal = function(dp.raw, direction="wide", first.y
   return(dat)
 }
 
-#' Get the input percentage of adults on ART who are lost to follow-up annually
+#' Get ART interruption rate inputs
 #'
+#' Access ART interruption rates entered into Spectrum for adult males, adult
+#' females, or children on ART
 #' @inheritParams dp.inputs.tfr
+#' @describeIn dp.inputs.adult.art.interruption Interruption rates in adults by calendar year and sex.
 #' @return A data frame.
 #' @export
-dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+dp.inputs.adult.art.interruption = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<PercLostFollowup MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
-#' Get the input percentage of children on ART who are lost to follow-up annually
-#'
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame.
+#' @describeIn dp.inputs.adult.art.interruption Interruption rates in children by calendar year.
 #' @export
-dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+dp.inputs.child.art.interruption = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<PercLostFollowupChild MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.adult.art.interruption DEPRECATED alias for dp.inputs.adult.art.interruption
+#' @export
+dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  .Deprecated("dp.inputs.adult.art.interruption")
+  dp.inputs.adult.art.interruption(dp.raw, direction, first.year, final.year)
+}
+
+#' @describeIn dp.inputs.adult.art.interruption DEPRECATED alias for dp.inputs.child.art.interruption
+#' @export
+dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  .Deprecated("dp.inputs.child.art.interruption")
+  dp.inputs.child.art.interruption(dp.raw, direction, first.year, final.year)
 }
 
 #' Get Spectrum child HIV treatment inputs
