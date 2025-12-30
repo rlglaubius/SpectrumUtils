@@ -27,5 +27,6 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get estimates of non-AIDS excess deaths
+Get estimates of non-AIDS excess deaths stratified by calendar year, sex
+(male, female), age (0,1,...,79,80+), and ART status (on ART, not on ART)
 }

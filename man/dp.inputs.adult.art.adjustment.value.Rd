@@ -3,7 +3,9 @@
 \name{dp.inputs.adult.art.adjustment.value}
 \alias{dp.inputs.adult.art.adjustment.value}
 \alias{dp.inputs.adult.art.adjustment.flag}
+\alias{dp.inputs.adult.art.mobility}
 \alias{dp.inputs.child.art.adjustment.value}
+\alias{dp.inputs.child.art.mobility}
 \alias{dp.inputs.child.art.adjustment.flag}
 \title{Extract inputs used to adjust programmatic numbers on ART for overcount or
 undercount}
@@ -17,7 +19,21 @@ dp.inputs.adult.art.adjustment.value(
 
 dp.inputs.adult.art.adjustment.flag(dp.raw, direction = "wide")
 
+dp.inputs.adult.art.mobility(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
 dp.inputs.child.art.adjustment.value(
+  dp.raw,
+  direction = "wide",
+  first.year = NULL,
+  final.year = NULL
+)
+
+dp.inputs.child.art.mobility(
   dp.raw,
   direction = "wide",
   first.year = NULL,
@@ -43,13 +59,20 @@ A data frame.
 }
 \description{
 Routine ART program data entered into Spectrum may be overcounted or
-undercounted for a variety of reasons. Countries may enter scale factors by
-year to adjust their program data up or down proportionally. These scale
-factors are entered seperately for adults and for children. Spectrum also has
-a TRUE/FALSE flag associated with adult and child adjustments. Spectrum will
-only adjust numbers on ART in a given year if this flag is TRUE, the number
-on ART is entered as an absolute number (not a percentage), and the scale
-factor value for that year is some value besides 1.
+undercounted for a variety of reasons including inaccurate reporting or
+patient mobility. Spectrum users may enter scale factors that proportionally
+adjust numbers on ART and/or absolute numbers of ART recipients to add to or
+subtract from the modeled population. Proportionate adjustments are intended
+to extrapolate findings from data quality assessments to national ART
+reporting, while absolute adjustments are intended to capture numbers of ART
+recipients who access care in a different place than they reside.
+}
+\details{
+Spectrum version 6.37 beta 16 and earlier versions included a user-toggleable
+flag to indicate whether proportionate adjustments should be applied to
+numbers on ART. Functions `dp.inputs.adult.art.adjustment.flag` and
+`dp.inputs.child.art.adjustment.flag` access the status of that flag, but
+this data element is not present in subsequent Spectrum versions.
 }
 \section{Functions}{
 \itemize{
@@ -58,7 +81,11 @@ ART by sex and year.
 
 \item \code{dp.inputs.adult.art.adjustment.flag()}: TRUE if adult ART adjustments are enabled, FALSE otherwise.
 
+\item \code{dp.inputs.adult.art.mobility()}: Positive values report adult ART recipients from other regions who got services in the modeled country or region; negative values count numbers of adult ART recipients who got services in other regions.
+
 \item \code{dp.inputs.child.art.adjustment.value()}: Adjustment values for child ART by year.
+
+\item \code{dp.inputs.child.art.mobility()}: Positive values report pediatric ART recipients from other regions who got services in the modeled country or region; negative values count numbers of pediatric ART recipients who got services in other regions.
 
 \item \code{dp.inputs.child.art.adjustment.flag()}: TRUE if child ART adjustments are enabled, FALSE otherwise.
 

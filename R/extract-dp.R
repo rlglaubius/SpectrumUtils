@@ -1464,7 +1464,7 @@ dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final
 
 #' Get Spectrum's calculated HIV-related deaths among PLHIV on ART
 #'
-#' Get Spectrum's calculated HIV-related deaths among PLHIV onART by age, sex,
+#' Get Spectrum's calculated HIV-related deaths among PLHIV on ART by age, sex,
 #' and year in long or wide format
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
@@ -1689,13 +1689,19 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
 #' undercount
 #'
 #' Routine ART program data entered into Spectrum may be overcounted or
-#' undercounted for a variety of reasons. Countries may enter scale factors by
-#' year to adjust their program data up or down proportionally. These scale
-#' factors are entered seperately for adults and for children. Spectrum also has
-#' a TRUE/FALSE flag associated with adult and child adjustments. Spectrum will
-#' only adjust numbers on ART in a given year if this flag is TRUE, the number
-#' on ART is entered as an absolute number (not a percentage), and the scale
-#' factor value for that year is some value besides 1.
+#' undercounted for a variety of reasons including inaccurate reporting or
+#' patient mobility. Spectrum users may enter scale factors that proportionally
+#' adjust numbers on ART and/or absolute numbers of ART recipients to add to or
+#' subtract from the modeled population. Proportionate adjustments are intended
+#' to extrapolate findings from data quality assessments to national ART
+#' reporting, while absolute adjustments are intended to capture numbers of ART
+#' recipients who access care in a different place than they reside.
+#'
+#' Spectrum version 6.37 beta 16 and earlier versions included a user-toggleable
+#' flag to indicate whether proportionate adjustments should be applied to
+#' numbers on ART. Functions `dp.inputs.adult.art.adjustment.flag` and
+#' `dp.inputs.child.art.adjustment.flag` access the status of that flag, but
+#' this data element is not present in subsequent Spectrum versions.
 #'
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
@@ -1723,10 +1729,33 @@ dp.inputs.adult.art.adjustment.flag = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<AdultARTAdjFactorFlag>", fmt)[1,1] == 1)
 }
 
+#' @describeIn dp.inputs.adult.art.adjustment.value Positive values report adult ART recipients from other regions who got services in the modeled country or region; negative values count numbers of adult ART recipients who got services in other regions.
+#' @export
+dp.inputs.adult.art.mobility = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=3, nrow=2, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<AdultPatsAllocToFromOtherRegion>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' @describeIn dp.inputs.adult.art.adjustment.value Adjustment values for child ART by year.
 #' @export
 dp.inputs.child.art.adjustment.value = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<ChildARTAdjFactor MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.adult.art.adjustment.value Positive values report pediatric ART recipients from other regions who got services in the modeled country or region; negative values count numbers of pediatric ART recipients who got services in other regions.
+#' @export
+dp.inputs.child.art.mobility = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ChildPatsAllocToFromOtherRegion MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
@@ -2871,6 +2900,9 @@ dp.output.ua.data = function(pjnz.file, direction="wide", first.year=NULL, final
 }
 
 #' Get estimates of non-AIDS excess deaths
+#'
+#' Get estimates of non-AIDS excess deaths stratified by calendar year, sex
+#' (male, female), age (0,1,...,79,80+), and ART status (on ART, not on ART)
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export

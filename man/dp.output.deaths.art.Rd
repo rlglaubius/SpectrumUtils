@@ -27,6 +27,6 @@ will be filled in using \code{dp.inputs.final.year()}}
 A data frame.
 }
 \description{
-Get Spectrum's calculated HIV-related deaths among PLHIV onART by age, sex,
+Get Spectrum's calculated HIV-related deaths among PLHIV on ART by age, sex,
 and year in long or wide format
 }
