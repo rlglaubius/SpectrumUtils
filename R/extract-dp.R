@@ -417,15 +417,53 @@ dp.inputs.anc.testing.helper = function(dp.raw, tag, rnames, first.year, final.y
 dp.inputs.hiv.testing = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  ind_name = c("Total diagnostic tests", "Total positive tests",
-               "Total HTS tests",        "Total positive HTS tests",
-               "Total ANC tests",        "Total positive ANC tests",
-               "Total self-tests",
-               "Total index partner tests")
   years = sprintf("%d", first.year:final.year)
-  fmt = list(cast=as.numeric, offset=2, nrow=8, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<HIVTesting MV>", fmt)
+
+  tag_v1 = "<HIVTesting MV>"
+  tag_v2 = "<HIVTesting MV2>"
+  tag_v3 = "<HIVTesting MV3>"
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    tag = tag_v1
+    fmt = list(cast=as.numeric, offset=2, nrow=8, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total self-tests",
+                 "Total index partner tests")
+  } else if (tag_v2 %in% dp.raw$Tag) {
+    tag = tag_v2
+    fmt = list(cast=as.numeric, offset=2, nrow=15, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total self-tests",
+                 "Total self-tests, assisted",
+                 "Total self-tests, unassisted",
+                 "Total reactive self-tests, assisted",
+                 "Total self-tests, primary",
+                 "Total self-tests, secondary",
+                 "Total HTS tests after reactive self-test",
+                 "Total index partner tests",
+                 "Total positive index partner tests")
+  } else {
+    tag = tag_v3
+    fmt = list(cast=as.numeric, offset=3, nrow=17, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total CBT tests",        "Total positive CBT tests",
+                 "Total self-tests",
+                 "Total tests, children 0-14",
+                 "Total tests, men 15+",
+                 "Total tests, women 15+",
+                 "Total tests, transgender 15+",
+                 "Total positive tests, children 0-14",
+                 "Total positive tests, men 15+",
+                 "Total positive tests, women 15+",
+                 "Total positive tests, transgender 15+")
+  }
+  raw = extract.dp.tag(dp.raw, tag, fmt)
   raw[raw==dp_not_avail] = NA
   dat = cbind(Indicator=ind_name, data.frame(raw))
   colnames(dat) = c("Indicator", years)
