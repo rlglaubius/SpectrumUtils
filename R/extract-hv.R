@@ -67,6 +67,25 @@ hv.inputs.art.effect = function(hv.raw, direction="wide", first.year=NULL, final
   return(dat)
 }
 
+#' Extract behavioral risk group size and duration inputs
+#' @inheritParams hv.inputs.first.year
+#' @return A data frame.
+#' @export
+hv.inputs.population.sizes = function(hv.raw, direction="wide") {
+  fmt = list(cast=as.numeric, offset=5, nrow=30, ncol=2)
+  raw = extract.hv.tag(hv.raw, "<Behavior MV>", fmt)
+  dat = data.frame(Population = c(strata.labels$hv.pop.ext[2:11], strata.labels$hv.pop[2:6]),
+                   Sex = rep(strata.labels$sex, c(10, 5)),
+                   Size = raw[is.finite(raw[,1]),1],
+                   Duration = raw[is.finite(raw[,2]), 2])
+
+  if (direction=="long") {
+    dat = tidyr::pivot_longer(dat, cols=tidyr::all_of(c("Size", "Duration")), names_to="Indicator", values_to="Value")
+  }
+
+  return(dat)
+}
+
 #' Extract data used for model fitting
 #' @inheritParams hv.inputs.first.year
 #' @return A data frame.
@@ -75,9 +94,11 @@ hv.inputs.art.effect = function(hv.raw, direction="wide", first.year=NULL, final
 hv.inputs.calibration.data = function(hv.raw, direction="wide") {
   tag_v1 = "<FitData MV>"
   tag_v2 = "<FitData MV2>"
+  tag_v3 = "<FitData MV3>"
 
   if (tag_v1 %in% hv.raw$Tag) {tag=tag_v1}
   if (tag_v2 %in% hv.raw$Tag) {tag=tag_v2}
+  if (tag_v3 %in% hv.raw$Tag) {tag=tag_v3}
 
   ## 1. Extract the number of rows of calibration data
   nrow_fmt = list(cast=as.numeric, offset=2, offset_col=3, nrow=1, ncol=1)
@@ -98,11 +119,24 @@ hv.inputs.calibration.data = function(hv.raw, direction="wide") {
       data_raw[,k] = as.numeric(data_raw[,k])
     }
   }
+
+  if (tag==tag_v3) {
+    cnames=c("Usage", "Population", "Sex", "Year", "Estimate", "Lower", "Upper", "N", "UseInFit", "Source")
+    data_fmt = list(cast=as.character, offset=3, offset_col=2, nrow=nrow_val, ncol=length(cnames))
+    data_raw = as.data.frame(extract.hv.tag(hv.raw, tag, data_fmt))
+    for (k in 1:(length(cnames)-1)) {
+      data_raw[,k] = as.numeric(data_raw[,k])
+    }
+  }
   colnames(data_raw) = cnames
 
   data_raw$Population = factor(data_raw$Population, levels=0:6, labels=strata.labels$hv.pop)
   data_raw$Sex = factor(data_raw$Sex, levels=0:2, labels=strata.labels$sex.aug)
   data_raw$UseInFit = (data_raw$UseInFit == 1)
+
+  if (tag==tag_v3) {
+    data_raw$Usage = factor(data_raw$Usage, levels=0:2, labels=c("Training", "Validation", "Exclude"))
+  }
 
   return(data_raw)
 }
