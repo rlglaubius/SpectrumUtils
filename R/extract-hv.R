@@ -23,8 +23,8 @@ extract.hv.tag = function(hv.raw, tag, fmt) {
 #' Helper function for extracting inputs by year, sex, and behavioral risk group
 #' @noRd
 hv.extract.time.series.by.population = function(hv.raw, direction="wide", first.year, final.year, tag) {
-  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
-  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  if (is.null(first.year)) {first.year = hv.inputs.first.year(hv.raw)}
+  if (is.null(final.year)) {final.year = hv.inputs.final.year(hv.raw)}
 
   pop_m = strata.labels$hv.pop.ext
   pop_f = strata.labels$hv.pop.ext[1:6]
@@ -33,7 +33,7 @@ hv.extract.time.series.by.population = function(hv.raw, direction="wide", first.
   years = sprintf("%d", first.year:final.year)
 
   fmt = list(cast=as.numeric, offset=3, nrow=num_row_m + num_row_f, ncol=final.year-first.year+1)
-  raw = extract.hv.tag(hv.raw, "<SexActs MV2>", fmt)
+  raw = extract.hv.tag(hv.raw, tag, fmt)
   dat = cbind(rep(strata.labels$sex, c(num_row_m, num_row_f)), c(pop_m, pop_f), data.frame(raw))
   colnames(dat) = c("Sex", "Population", years)
   dat = dplyr::filter(dat, Population != "All")
@@ -110,7 +110,7 @@ hv.inputs.population.sizes = function(hv.raw, direction="wide") {
   return(dat)
 }
 
-#' Get the input number of sex acts per partnership by behavioral risk group
+#' Get the input by year, sex, and behavioral risk group
 #' @param hv.raw Goals module data in raw format, as returned by
 #'   \code{read.raw.hv()}
 #' @param direction Request "wide" (default) or "long" format data.
@@ -119,32 +119,22 @@ hv.inputs.population.sizes = function(hv.raw, direction="wide") {
 #' @param final.year Final year of the projection. If \code{final.year=NULL}, it
 #'   will be filled in using \code{hv.inputs.final.year()}
 #' @return A data frame.
+#' @describeIn hv.inputs.sex.acts sex acts per partnership per year
 #' @export
 hv.inputs.sex.acts = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
-  if (is.null(first.year)) {first.year = hv.inputs.first.year(hv.raw)}
-  if (is.null(final.year)) {final.year = hv.inputs.final.year(hv.raw)}
+  hv.extract.time.series.by.population(hv.raw, direction, first.year, final.year, "<SexActs MV2>")
+}
 
-  pop_m = strata.labels$hv.pop.ext
-  pop_f = strata.labels$hv.pop.ext[1:6]
-  num_row_m = length(pop_m)
-  num_row_f = length(pop_f)
-  years = sprintf("%d", first.year:final.year)
+#' @describeIn hv.inputs.sex.acts sexual partners per year
+#' @export
+hv.inputs.partners = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  hv.extract.time.series.by.population(hv.raw, direction, first.year, final.year, "<NumPart MV2>")
+}
 
-  fmt = list(cast=as.numeric, offset=3, nrow=num_row_m + num_row_f, ncol=final.year-first.year+1)
-  raw = extract.hv.tag(hv.raw, "<SexActs MV2>", fmt)
-  dat = cbind(rep(strata.labels$sex, c(num_row_m, num_row_f)),
-              c(pop_m, pop_f),
-              data.frame(raw))
-  colnames(dat) = c("Sex", "Population", years)
-
-  dat = dplyr::filter(dat, Population != "All")
-
-  if (direction == "long") {
-    dat = tidyr::pivot_longer(dat, cols=all_of(years), names_to = "Year", values_to="Value") |>
-      dplyr::mutate(Year = as.numeric(as.character(Year)))
-  }
-
-  return(dat)
+#' @describeIn hv.inputs.sex.acts STI prevalence
+#' @export
+hv.inputs.sti.prevalence = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  hv.extract.time.series.by.population(hv.raw, direction, first.year, final.year, "<STIPrev MV2>")
 }
 
 #' Extract data used for model fitting
