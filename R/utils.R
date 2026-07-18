@@ -56,7 +56,7 @@ read.module.data = function(pjnz.file, extension="DP") {
 #'   \code{fmt$nrow}: Number of rows of data, relative to the starting tag row
 #'   number + \code{fmt$offset}
 #'
-#'   \code{fmt$offset_col}: (optional) the first row with data. If this is
+#'   \code{fmt$offset_col}: (optional) the first column with data. If this is
 #'   omitted, the "Data" column is used. Since almost all tag data starts in
 #'   the "Data" column, \code{offset_col} usually is not needed.
 #'

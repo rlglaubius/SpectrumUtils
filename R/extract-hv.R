@@ -218,6 +218,79 @@ hv.inputs.hiv.prevalence = function(hv.raw, direction="wide", first.year=NULL, f
   return(dat)
 }
 
+#' Get parameter configuration used for model calibration
+#'
+#' Get configuration settings for model parameters used to calibrate Goals. This
+#' includes the initial and final calibrated values, prior distribution and its
+#' hyperparameter values, whether the parameter was selected for model fitting,
+#' and whether it was actually fitted. See the "Details" section for a
+#' description of the return dataframe columns.
+#' @inheritParams hv.inputs.first.year
+#' @return a data frame
+#' @section Details:
+#'
+#'  This returns a dataframe with the following columns:
+#'  \describe{
+#'  \item{Parameter}{The parameter name}
+#'  \item{Prior}{The parameter prior distribution}
+#'  \item{IntialValue}{The initial parameter value when fitting started}
+#'  \item{Mean}{The prior distribution mean}
+#'  \item{StdDev}{The prior distribution standard deviation}
+#'  \item{FinalValue}{The best-fitting value found during fitting}
+#'  \item{ParSelected}{Indicates whether the parameter was selected for inclusion in model fitting}
+#'  \item{ParFitted}{Indicates whether the model fitting was run for the parameter}
+#'  }
+#' The output has separate fields for `ParSelected` and `ParFitted` because the
+#' user could change what parameters are selected for model fitting without
+#' actually running a model fit.
+#' @export
+hv.inputs.calibration.parameters = function(hv.raw, direction="wide") {
+  ## <FitParamSet MV> was designed to be extensible. The same ModVar version
+  ## stores different numbers of parameter records for different Spectrum
+  ## versions. Only the latest (circa Spectrum 6.44, released July 2027) is
+  ## supported currently.
+
+  tag = "<FitParamSet MV>"
+  fmt_nrow = list(cast=as.numeric, offset=3, offset_col=3, nrow=1, ncol=1)
+  raw_nrow = extract.hv.tag(hv.raw, tag, fmt_nrow)[1]
+
+  if (raw_nrow == 19) { # Spectrum 6.44 and later
+    fmt_data = list(cast=as.numeric, offset=5, offset_col=3, nrow=raw_nrow-1, ncol=7)
+    raw_data = data.frame(extract.hv.tag(hv.raw, tag, fmt_data))
+    colnames(raw_data) = c("Prior", "InitialValue", "Mean", "StdDev", "FinalValue", "ParSelected", "ParFitted")
+    raw_data$Parameter = c("Transmission of HIV per act",
+                           "Transmission multiplier from male to female",
+                           "Transmission multiplier for STI",
+                           "Transmission multiplier for MSM contacts",
+                           "Months in primary stage",
+                           "Relative infectiousness during primary infection",
+                           "Relative infectiousness during symptomatic infection",
+                           "Size of the initial pulse of infection",
+                           "Sex acts per partner, low risk heterosexual partnership",
+                           "Sex acts per partner, medium risk heterosexual partnership",
+                           "Sex acts per partner, high risk heterosexual partnership",
+                           "Sex acts per partner, MSM partnership",
+                           "Percent of PWID who share needles",
+                           "Condom use & STI growth rate",
+                           "Condom use & STI growth location",
+                           "Condom use & STI years to final value",
+                           "Dummy",
+                           "Force of infection among PWID")
+
+  } else {
+    error("Unsupported FitParamSet version")
+  }
+
+  dat = raw_data |>
+    dplyr::mutate(Prior = factor(Prior, levels=0:2, labels=c("Normal", "Beta", "Gamma")),
+                  ParSelected = plyr::mapvalues(ParSelected, from=0:1, to=c(FALSE, TRUE), warn_missing = FALSE),
+                  ParFitted   = plyr::mapvalues(ParFitted,   from=0:1, to=c(FALSE, TRUE), warn_missing = FALSE)) |>
+    dplyr::relocate(Parameter) |>
+    dplyr::filter(Parameter != "Dummy")
+
+  return(dat)
+}
+
 #' Get the estimated numbers of adults ages 15-49 in each model compartment over
 #' time.
 #' @inheritParams hv.inputs.art.effect
