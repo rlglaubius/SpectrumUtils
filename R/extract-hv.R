@@ -282,7 +282,7 @@ hv.inputs.calibration.parameters = function(hv.raw, direction="wide") {
   }
 
   dat = raw_data |>
-    dplyr::mutate(Prior = factor(Prior, levels=0:2, labels=c("Normal", "Beta", "Gamma")),
+    dplyr::mutate(Prior = factor(Prior, levels=0:2, labels=c("Normal", "Gamma", "Beta")),
                   ParSelected = plyr::mapvalues(ParSelected, from=0:1, to=c(FALSE, TRUE), warn_missing = FALSE),
                   ParFitted   = plyr::mapvalues(ParFitted,   from=0:1, to=c(FALSE, TRUE), warn_missing = FALSE)) |>
     dplyr::relocate(Parameter) |>
