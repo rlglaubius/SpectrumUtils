@@ -417,15 +417,53 @@ dp.inputs.anc.testing.helper = function(dp.raw, tag, rnames, first.year, final.y
 dp.inputs.hiv.testing = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
   if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
-
-  ind_name = c("Total diagnostic tests", "Total positive tests",
-               "Total HTS tests",        "Total positive HTS tests",
-               "Total ANC tests",        "Total positive ANC tests",
-               "Total self-tests",
-               "Total index partner tests")
   years = sprintf("%d", first.year:final.year)
-  fmt = list(cast=as.numeric, offset=2, nrow=8, ncol=final.year-first.year+1)
-  raw = extract.dp.tag(dp.raw, "<HIVTesting MV>", fmt)
+
+  tag_v1 = "<HIVTesting MV>"
+  tag_v2 = "<HIVTesting MV2>"
+  tag_v3 = "<HIVTesting MV3>"
+
+  if (tag_v1 %in% dp.raw$Tag) {
+    tag = tag_v1
+    fmt = list(cast=as.numeric, offset=2, nrow=8, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total self-tests",
+                 "Total index partner tests")
+  } else if (tag_v2 %in% dp.raw$Tag) {
+    tag = tag_v2
+    fmt = list(cast=as.numeric, offset=2, nrow=15, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total self-tests",
+                 "Total self-tests, assisted",
+                 "Total self-tests, unassisted",
+                 "Total reactive self-tests, assisted",
+                 "Total self-tests, primary",
+                 "Total self-tests, secondary",
+                 "Total HTS tests after reactive self-test",
+                 "Total index partner tests",
+                 "Total positive index partner tests")
+  } else {
+    tag = tag_v3
+    fmt = list(cast=as.numeric, offset=3, nrow=17, ncol=final.year-first.year+1)
+    ind_name = c("Total diagnostic tests", "Total positive tests",
+                 "Total HTS tests",        "Total positive HTS tests",
+                 "Total ANC tests",        "Total positive ANC tests",
+                 "Total CBT tests",        "Total positive CBT tests",
+                 "Total self-tests",
+                 "Total tests, children 0-14",
+                 "Total tests, men 15+",
+                 "Total tests, women 15+",
+                 "Total tests, transgender 15+",
+                 "Total positive tests, children 0-14",
+                 "Total positive tests, men 15+",
+                 "Total positive tests, women 15+",
+                 "Total positive tests, transgender 15+")
+  }
+  raw = extract.dp.tag(dp.raw, tag, fmt)
   raw[raw==dp_not_avail] = NA
   dat = cbind(Indicator=ind_name, data.frame(raw))
   colnames(dat) = c("Indicator", years)
@@ -1464,7 +1502,7 @@ dp.output.deaths.hiv = function(dp.raw, direction="wide", first.year=NULL, final
 
 #' Get Spectrum's calculated HIV-related deaths among PLHIV on ART
 #'
-#' Get Spectrum's calculated HIV-related deaths among PLHIV onART by age, sex,
+#' Get Spectrum's calculated HIV-related deaths among PLHIV on ART by age, sex,
 #' and year in long or wide format
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
@@ -1689,13 +1727,19 @@ dp.inputs.adult.art = function(dp.raw, direction="wide", first.year=NULL, final.
 #' undercount
 #'
 #' Routine ART program data entered into Spectrum may be overcounted or
-#' undercounted for a variety of reasons. Countries may enter scale factors by
-#' year to adjust their program data up or down proportionally. These scale
-#' factors are entered seperately for adults and for children. Spectrum also has
-#' a TRUE/FALSE flag associated with adult and child adjustments. Spectrum will
-#' only adjust numbers on ART in a given year if this flag is TRUE, the number
-#' on ART is entered as an absolute number (not a percentage), and the scale
-#' factor value for that year is some value besides 1.
+#' undercounted for a variety of reasons including inaccurate reporting or
+#' patient mobility. Spectrum users may enter scale factors that proportionally
+#' adjust numbers on ART and/or absolute numbers of ART recipients to add to or
+#' subtract from the modeled population. Proportionate adjustments are intended
+#' to extrapolate findings from data quality assessments to national ART
+#' reporting, while absolute adjustments are intended to capture numbers of ART
+#' recipients who access care in a different place than they reside.
+#'
+#' Spectrum version 6.37 beta 16 and earlier versions included a user-toggleable
+#' flag to indicate whether proportionate adjustments should be applied to
+#' numbers on ART. Functions `dp.inputs.adult.art.adjustment.flag` and
+#' `dp.inputs.child.art.adjustment.flag` access the status of that flag, but
+#' this data element is not present in subsequent Spectrum versions.
 #'
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
@@ -1723,10 +1767,33 @@ dp.inputs.adult.art.adjustment.flag = function(dp.raw, direction="wide") {
   return(extract.dp.tag(dp.raw, "<AdultARTAdjFactorFlag>", fmt)[1,1] == 1)
 }
 
+#' @describeIn dp.inputs.adult.art.adjustment.value Positive values report adult ART recipients from other regions who got services in the modeled country or region; negative values count numbers of adult ART recipients who got services in other regions.
+#' @export
+dp.inputs.adult.art.mobility = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = dp.inputs.first.year(dp.raw)}
+  if (is.null(final.year)) {final.year = dp.inputs.final.year(dp.raw)}
+  fmt = list(cast=as.numeric, offset=3, nrow=2, ncol=final.year-first.year+1)
+  raw = extract.dp.tag(dp.raw, "<AdultPatsAllocToFromOtherRegion>", fmt)
+  dat = cbind(strata.labels$sex, data.frame(raw))
+  colnames(dat) = c("Sex", sprintf("%d", first.year:final.year))
+  if (direction=="long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+  return(dat)
+}
+
 #' @describeIn dp.inputs.adult.art.adjustment.value Adjustment values for child ART by year.
 #' @export
 dp.inputs.child.art.adjustment.value = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<ChildARTAdjFactor MV>"
+  return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.adult.art.adjustment.value Positive values report pediatric ART recipients from other regions who got services in the modeled country or region; negative values count numbers of pediatric ART recipients who got services in other regions.
+#' @export
+dp.inputs.child.art.mobility = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  tag = "<ChildPatsAllocToFromOtherRegion MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
@@ -1842,24 +1909,38 @@ dp.inputs.pmtct.retention.postnatal = function(dp.raw, direction="wide", first.y
   return(dat)
 }
 
-#' Get the input percentage of adults on ART who are lost to follow-up annually
+#' Get ART interruption rate inputs
 #'
+#' Access ART interruption rates entered into Spectrum for adult males, adult
+#' females, or children on ART
 #' @inheritParams dp.inputs.tfr
+#' @describeIn dp.inputs.adult.art.interruption Interruption rates in adults by calendar year and sex.
 #' @return A data frame.
 #' @export
-dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+dp.inputs.adult.art.interruption = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<PercLostFollowup MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
 }
 
-#' Get the input percentage of children on ART who are lost to follow-up annually
-#'
-#' @inheritParams dp.inputs.tfr
-#' @return A data frame.
+#' @describeIn dp.inputs.adult.art.interruption Interruption rates in children by calendar year.
 #' @export
-dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+dp.inputs.child.art.interruption = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
   tag = "<PercLostFollowupChild MV>"
   return(dp.extract.time.series(dp.raw, direction, first.year, final.year, tag=tag, offset=2))
+}
+
+#' @describeIn dp.inputs.adult.art.interruption DEPRECATED alias for dp.inputs.adult.art.interruption
+#' @export
+dp.inputs.adult.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  .Deprecated("dp.inputs.adult.art.interruption")
+  dp.inputs.adult.art.interruption(dp.raw, direction, first.year, final.year)
+}
+
+#' @describeIn dp.inputs.adult.art.interruption DEPRECATED alias for dp.inputs.child.art.interruption
+#' @export
+dp.inputs.child.art.ltfu = function(dp.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  .Deprecated("dp.inputs.child.art.interruption")
+  dp.inputs.child.art.interruption(dp.raw, direction, first.year, final.year)
 }
 
 #' Get Spectrum child HIV treatment inputs
@@ -2871,6 +2952,9 @@ dp.output.ua.data = function(pjnz.file, direction="wide", first.year=NULL, final
 }
 
 #' Get estimates of non-AIDS excess deaths
+#'
+#' Get estimates of non-AIDS excess deaths stratified by calendar year, sex
+#' (male, female), age (0,1,...,79,80+), and ART status (on ART, not on ART)
 #' @inheritParams dp.inputs.tfr
 #' @return A data frame.
 #' @export
