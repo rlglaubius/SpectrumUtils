@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+man/
+*.Rproj
+.DS_Store
+tmp_plots/

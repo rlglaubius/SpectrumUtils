@@ -1,14 +1,21 @@
 Package: SpectrumUtils
 Type: Package
 Title: Utilities for reading Spectrum files
-Version: 0.2.3
+Version: 0.3.0
 Author: Rob Glaubius, John Stover, Guy Mahiane
 Maintainer: Rob Glaubius <rglaubius@avenirhealth.org>
 Description: Spectrum (https://avenirhealth.org/software-spectrum.php) is a suite of policy models. The SpectrumUtils package provides an R interface for loading information from these files into R.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
-Suggests: 
+RoxygenNote: 7.3.3
+Imports:
+    dplyr,
+    reshape2,
+    openxlsx,
+    ggplot2,
+    patchwork,
+    stats
+Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

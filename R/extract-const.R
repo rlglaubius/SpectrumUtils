@@ -81,68 +81,213 @@ strata.labels = list(
              "Vaccinated, unprotected"),
 
   prep.methods = c(
-    "Oral (daily)" = 24,
-    "Ring" = 27,
-    "Oral (monthly)" = 33,
-    "Oral + contraceptive" = 34,
-    "Injectable (one month)" = 25,
-    "Injectable (two months)" = 35,
-    "Injectable (six months)" = 36,
-    "bNABs" = 37,
-    "Implant" = 38,
-    "PEP" = 39),
+    "24" = "Oral (daily)",
+    "27" = "Ring",
+    "33" = "Oral (monthly)",
+    "34" = "Oral + contraceptive",
+    "25" = "Injectable (one month)",
+    "35" = "Injectable (two months)",
+    "36" = "Injectable (six months)",
+    "37" = "bNABs",
+    "38" = "Implant",
+    "39" = "PEP"),
 
   risk.groups = c(
-    "Low risk heterosexual" = 2,
-    "Medium risk heterosexual" = 3,
-    "High risk heterosexual" = 4,
-    "People Who Inject Drugs (PWID)" = 5,
-    "Men who have sex with men" = 6,
-    "MSM: low risk" = 7,
-    "MSM: med risk" = 8,
-    "MSM: high risk" = 9,
-    "MSM: PWID" = 10),
+    "2"  = "Low risk heterosexual",
+    "3"  = "Medium risk heterosexual",
+    "4"  = "High risk heterosexual",
+    "5"  = "People Who Inject Drugs (PWID)",
+    "6"  = "Men who have sex with men",
+    "7"  = "MSM: low risk",
+    "8"  = "MSM: med risk",
+    "9"  = "MSM: high risk",
+    "10" = "MSM: PWID"),
 
   rn.programs = c(
-    "General population: Community mobilization",
-    "General population: Mass media",
-    "General population: Voluntary counseling and testing",
-    "General population: Condom provision",
-    "General population: Primary students with teachers trained in AIDS",
-    "General population: Secondary students with teachers trained in AIDS",
-    "General population: Out-of-school youth reached",
-    "General population: Young women and girls (15-24) receiving cash transfers",
-    "General population: Workforce receiving STI treatment", # NOTE: May not be active in UI, but is present in .RN
-    "Key populations: Female sex workers reached by intervention",
-    "Key populations: Male sex workers reached by intervention",
-    "Key populations: MSMs reached by intervention per year",
-    "Key populations: MSMs receiving lubricants",
-    "Key populations: PWID receiving harm reduction intervention",
-    "Key populations: PWID receiving counseling and testing",
-    "Key populations: PWID receiving community outreach and peer education",
-    "Key populations: PWID receiving needle and syringe exchange",
-    "Key populations: PWID receiving drug substitution",
-    "Male circumcision: Males 15-49 circumcised",
-    "Male circumcision: Infant males circumcised", # NOTE: Not active in UI, but is present in .RN
-    "Medical services: Males with STI receiving treatment",
-    "Medical services: Females with STI receiving treatment",
-    "Medical services: Units of blood for transfusion tested",
-    "Medical services: Post-exposure prophylaxis need that is met",
-    "Medical services: Unsafe injections replaced with AD syringes", # NOTE: AD=auto-destruct.
-    "Medical services: Reduction in number of other injections",
-    "Medical services: Hospital beds covered by universal precautions")
-  )
+    "9"  = "General population: Community mobilization",
+    "20" = "General population: Mass media",
+    "19" = "General population: Voluntary counseling and testing",
+    "15" = "General population: Condom provision",
+    "10" = "General population: Primary students with teachers trained in AIDS",
+    "11" = "General population: Secondary students with teachers trained in AIDS",
+    "12" = "General population: Out-of-school youth reached",
+    "13" = "General population: Young women and girls (15-24) receiving cash transfers",
+    "14" = "General population: Workforce receiving STI treatment", # NOTE: May not be active in UI, but is present in .RN
+    "1"  = "Key populations: Female sex workers reached by intervention",
+    "2"  = "Key populations: Male sex workers reached by intervention",
+    "3"  = "Key populations: MSMs reached by intervention per year",
+    "27" = "Key populations: MSMs receiving lubricants",
+    "4"  = "Key populations: PWID receiving harm reduction intervention",
+    "5"  = "Key populations: PWID receiving counseling and testing",
+    "6"  = "Key populations: PWID receiving community outreach and peer education",
+    "7"  = "Key populations: PWID receiving needle and syringe exchange",
+    "8"  = "Key populations: PWID receiving drug substitution",
+    "26" = "Male circumcision: Males 15–49 circumcised",
+    "33" = "Male circumcision: Infant males circumcised",
+    "17" = "Medical services: Males with STI receiving treatment",
+    "18" = "Medical services: Females with STI receiving treatment",
+    "21" = "Medical services: Units of blood for transfusion tested",
+    "22" = "Medical services: Post-exposure prophylaxis need that is met",
+    "23" = "Medical services: Unsafe injections replaced with AD syringes",
+    "24" = "Medical services: Reduction in number of other injections",
+    "25" = "Medical services: Hospital beds covered by universal precautions"),
+
+  rn.unit.costs.general = c(
+    # General Population
+    "9"   = "Community mobilization: Cost per person reached",
+    "18"  = "Mass media: Cost per person reached",
+    "17"  = "HIV testing: Cost per VCT client",
+    "15"  = "Condom provision: Cost per male condom distributed by the public sector",
+    "10"  = "Youth: Cost per teacher trained in primary school education",
+    "11"  = "Youth: Cost per teacher trained in secondary school education",
+    "12"  = "Youth: Cost per peer education for out of school youth",
+    "13"  = "Economic strengthening: Cost per woman receiving economic strengthening (per year)",
+    # Key populations
+    "1"   = "Cost per sex worker targeted (FSW)",
+    "2"   = "Cost per sex worker targeted (MSW)",
+    "3"   = "Cost per MSM targeted",
+    "29"  = "Cost of MSM lubricants per person",
+    "4"   = "Cost of harm reduction programs per person contacted (PWID)",
+    "5"   = "Cost of counseling and testing per PWID targeted",
+    "6"   = "Cost of community outreach and peer education per PWID targeted",
+    "7"   = "Cost per needle distributed and destroyed",
+    "8"   = "Cost of drug substitution per PWID targeted",
+    # Medical services
+    "16"  = "STI management: Cost per STI treated in clinics",
+    "19"  = "Blood safety: Cost of screening a unit of blood for HIV",
+    "20"  = "Post-exposure prophylaxis: Cost per PEP kit",
+    "21"  = "Safe medical injection: Additional cost for AD syringes",
+    "22"  = "Universal precautions: Annual cost per hospital bed",
+    # Male circumcision
+    "23"  = "Cost per adult circumcision",
+    "32"  = "Cost per infant circumcision",
+    # PrEP
+    "24"  = "PrEP oral: Cost per person treated (Daily)",
+    "33"  = "PrEP oral: Cost per person treated (Monthly)",
+    "34"  = "PrEP oral: Cost per person treated (Plus Contraceptive)",
+    "25" = "PreP injectable: Cost per person treated (1 Month)",
+    "35" = "PrEP injectable: Cost per person treated (2 Months)",
+    "36"  = "PrEP injectable: Cost per person treated (6 Months)",
+    "27"  = "PrEP ring: Cost per person treated",
+    "37"  = "PrEP bNABs: Cost per person treated",
+    "38"  = "PrEP Implant: Cost per person treated",
+    "39"  = "PrEP PEP: Cost per person treated",
+    # Vaccines
+    "28"  = "Vaccines: Cost per person fully vaccinated",
+    # Cure
+    "40"  = "PLHIV: Cost per person treated (Cure)",
+    # AHD treatment
+    "41"  = "PLHIV: Cost per person treated (AHD treatment)"),
+
+  rn.unit.costs.treatment = c(
+    "<FirstLineARTDrugs MV>" = "First line ART drugs",
+    "<SecondLineARTDrugs MV>" = "Second line ART drugs",
+    "<AdditARTDrugCostsTBmale MV>" = "Additional ART drug costs for TB patients (male)",
+    "<AdditARTDrugCostsTBfemale MV>" =  "Additional ART drug costs for TB patients (Female)",
+    "<LabCostsARTTr MV>"= "Lab costs for ART treatment",
+    "<DrugLabCostsTrInf MV>" = "Lab costs for drugs to treat infections",
+    "<CotrimProphylaxis MV>" = "Cotrimoxazole prophylaxis",
+    "<TBProphylaxis MV>" = "TB prophylaxis",
+    "<NutritionSuppSixMo MV>" = "Nutrition supplements in first six months",
+    "<ChildrenARVDrugs MV>" = "Children ARV drugs",
+    "<ChildrenLabCostsARTTr MV>" = "Children ART treatment lab costs",
+    "<CostPerInpatientDay MV>" = "Cost per in-patient day",
+    "<CostPerOutpatientDay MV>" = "Cost per out-patient visit",
+    "<ARTinpatientDays MV>" = "ART: in-patient days",
+    "<ARToutpatientDays MV>" = "ART: out-patient visit",
+    "<OItreatmentInpatientDays MV>" = "OI treatment: in-patient days",
+    "<OItreatmentOutpatientDays MV>" = "OI treatment: out-patient days"),
+
+  rn.unit.costs.pmtct = c(
+    "<Mother MV>" = "HIV testing (per test): Mother"
+  ),
+
+  ## Goals RSM constants
+  rsm.infectiousness.stages = c(
+    "Primary Infection",
+    "Asymptomatic stage",
+    "Symptomatic stage (no ART)"),
+
+  rsm.impact.interventions = c(
+    "Community mobilization",
+    "Mass media",
+    "VCT",
+    "Condoms",
+    "Youth in school",
+    "Youth out of school",
+    "Economic strengthening",
+    "Sex workers",
+    "MSM outreach",
+    "MSM: lubricants",
+    "PWID outreach",
+    "PWID: needle exchange",
+    "PWID: drug substitution"),
+
+  rsm.impact.outcomes = c(
+    "Condom_nonuse_High",
+    "Condom_nonuse_Medium",
+    "Condom_nonuse_Low",
+    "Condom_nonuse_MSM",
+    "Condom_nonuse_PWID",
+    "Partners_High",
+    "Partners_Medium",
+    "Partners_Low",
+    "Partners_MSM",
+    "Partners_PWID",
+    "AgeFirstSex_Medium",
+    "Unsafe_injecting",
+    "Needle_sharing",
+    "Sharing_partners"),
+
+  rsm.fit.param.names = c(
+    "Transmission of HIV per act",
+    "Transmission multiplier male-to-female",
+    "Transmission multiplier for STI",
+    "Transmission multiplier for MSM contacts",
+    "Months in primary stage",
+    "Primary infection relative infectiousness",
+    "Symptomatic stage infectiousness (no ART)",
+    "Initial pulse size",
+    "Sex acts per partner: Low risk heterosexual",
+    "Sex acts per partner: Medium risk heterosexual",
+    "Sex acts per partner: High risk heterosexual",
+    "Sex acts per partner: MSM",
+    "Percent PWID sharing needles",
+    "Condom use growth rate",
+    "Condom use growth location",
+    "Years to final condom use value",
+    "Unused")
+)
 
 output.labels = list(
   value = "Value"
 )
 
 strata.labels$hv.hiv = c("Negative", "Primary", strata.labels$cd4.adult)
-strata.labels$hv.pop.ext = c("All",
+strata.labels$hv.pop.ext = c( "All",
                              strata.labels$hv.pop[2:7],
                              "MSM, low risk",
                              "MSM, medium risk",
                              "MSM, high risk",
                              "MSM who inject drugs")
+strata.labels$rsm.condom.groups = c(strata.labels$hv.pop[c(3,4,5,7)],
+                                    "MSM: low risk",
+                                    "MSM: medium risk",
+                                    "MSM: high risk")
+
+## Short acronym labels for Key populations: ... programme names, used to keep
+## facet strip text readable (full labels are too long to fit multi-panel
+## plots, especially across many pages of a saved PDF).
+#' @noRd
+kp.programme.labels = c(
+  "Key populations: Female sex workers reached by intervention" = "KP: FSW reached",
+  "Key populations: Male sex workers reached by intervention" = "KP: MSW reached",
+  "Key populations: MSMs reached by intervention per year" = "KP: MSM reached",
+  "Key populations: MSMs receiving lubricants" = "KP: MSM lubricants",
+  "Key populations: PWID receiving harm reduction intervention" = "KP: PWID harm reduction",
+  "Key populations: PWID receiving counseling and testing" = "KP: PWID counseling/testing",
+  "Key populations: PWID receiving community outreach and peer education" = "KP: PWID outreach",
+  "Key populations: PWID receiving needle and syringe exchange" = "KP: PWID needle exchange",
+  "Key populations: PWID receiving drug substitution" = "KP: PWID drug substitution")
 
 dp_not_avail = -9999 # Value used to indicate missing data in DemProj
