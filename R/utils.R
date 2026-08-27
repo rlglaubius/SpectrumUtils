@@ -17,7 +17,8 @@ read.module.data = function(pjnz.file, extension="DP") {
     warning(sprintf("Reading data for module '%s' failed, found %d matching files in %s", extension, length(mod.file), pjnz.file))
     mod.data = NULL
   } else {
-    mod.data = read.csv(unz(pjnz.file, mod.file), stringsAsFactors=FALSE)
+    mod.data = read.csv(unz(pjnz.file, mod.file), quote = "",
+                        fill = TRUE, stringsAsFactors=FALSE)
   }
   colnames(mod.data)[1] = "Tag" # Strip off UTF BOM
   return(mod.data)
@@ -156,5 +157,106 @@ extract.geo.info = function(pjn.raw) {
   dat = data.frame(iso.code = iso.raw, snu.name = snu.raw[1,1], snu.code = as.numeric(snu.raw[2,1]))
   return(dat)
 }
+#' Write Spectrum module data back in original format
+#' @param data The data frame to write
+#' @param file.path The file path to write to
+#' @export
+write.module.data.tab = function(data, file.path) {
+  utils::write.csv(data, file.path,
+                   quote = FALSE,
+                   na = "",
+                   row.names = FALSE,
+                   fileEncoding = "UTF-8")
+}
 
+## Shared ggplot2 theme for comparison/analysis plots. Text is sized so that
+## panel titles, facet strips, and axis labels stay readable when many of
+## these plots are saved into a single multi-page PDF. base_size can be
+## lowered (e.g. for multi-panel composites) to keep titles from being cut
+## off.
+#' @noRd
+spectrumutils.plot.theme = function(base_size=14) {
+  ggplot2::theme_minimal(base_size=base_size) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size=base_size + 4, face="bold"),
+      strip.text = ggplot2::element_text(size=base_size - 1, face="bold"),
+      axis.title = ggplot2::element_text(size=base_size),
+      axis.text = ggplot2::element_text(size=base_size - 3),
+      legend.text = ggplot2::element_text(size=base_size - 2),
+      legend.title = ggplot2::element_text(size=base_size - 1))
+}
 
+## Puts the legend at the bottom of the plot, freeing up horizontal space so
+## multi-panel plots and long x-axis year labels stay legible.
+#' @noRd
+spectrumutils.legend.bottom = function() {
+  ggplot2::theme(legend.position="bottom")
+}
+
+## Coverage/share values are stored as percentages (0-100, never negative);
+## floor the y-axis at 0 and label it with a "%" suffix without rescaling.
+#' @noRd
+spectrumutils.pct.scale = function() {
+  ggplot2::scale_y_continuous(labels=function(x) paste0(x, "%"), limits=c(0, NA))
+}
+
+## As spectrumutils.pct.scale(), but the y-axis always covers at least the
+## full 0-100% range in 10% increments. Unlike a hard limits=c(0,100), this
+## does not clip values above 100% (e.g. a coverage input exceeding 100% due
+## to a data issue) -- the axis simply extends further so the anomaly stays
+## visible instead of being silently dropped.
+#' @noRd
+spectrumutils.pct.scale.100 = function() {
+  list(
+    ggplot2::scale_y_continuous(
+      labels=function(x) paste0(x, "%"),
+      breaks=function(limits) seq(0, max(100, ceiling(limits[2] / 10) * 10), by=10)),
+    ggplot2::expand_limits(y=c(0, 100)))
+}
+
+## Forces whole-year x-axis breaks/labels (no decimal years), regardless of
+## how narrow the plotted year range is.
+#' @noRd
+spectrumutils.year.scale = function() {
+  ggplot2::scale_x_continuous(
+    breaks=function(limits) unique(round(pretty(limits))),
+    labels=function(x) formatC(x, format="d"))
+}
+
+## The extract.raw.tag() family always reads a data block starting at a
+## module's actual first stored year, regardless of what first.year/final.year
+## a caller supplies -- those arguments only set how many columns are read
+## and how the result is labelled afterward. If a caller's requested range
+## doesn't exactly match the file's true range, the result is silently
+## misaligned/mislabelled data rather than an error, or a genuine subset of
+## the plotted years. This checks a requested range against a file's actual
+## first.year/final.year (as reported by dp.inputs.first.year()/
+## dp.inputs.final.year() or hv.inputs.first.year()/hv.inputs.final.year())
+## and stops with a clear explanation if they don't match exactly.
+#' @noRd
+spectrumutils.validate.year.range = function(requested.first.year, requested.final.year,
+                                              true.first.year, true.final.year, file.label=NULL) {
+  if (is.null(requested.first.year) || is.null(requested.final.year)) {return(invisible(NULL))}
+  if (requested.first.year == true.first.year && requested.final.year == true.final.year) {return(invisible(NULL))}
+
+  stop(sprintf(paste(
+    "first.year/final.year (%d-%d) must exactly match%s the file's own",
+    "projection year range (%d-%d). These extraction functions always read",
+    "a fixed-width data block starting at the file's actual first year --",
+    "a mismatched range silently reads and mislabels the wrong years rather",
+    "than filtering the plotted window. Use dp.inputs.first.year(dp.raw)/",
+    "dp.inputs.final.year(dp.raw) (or the hv.inputs.* equivalents) to get",
+    "the correct values."),
+    requested.first.year, requested.final.year,
+    if (is.null(file.label)) "" else paste0(" ", file.label, "'s"),
+    true.first.year, true.final.year))
+}
+
+## Arranges a list of ggplot objects onto a single landscape A4 page and
+## saves it as a one-page PDF, for functions' combine.plots=TRUE option.
+#' @noRd
+spectrumutils.save.combined.pdf = function(plots, file.path) {
+  combined = patchwork::wrap_plots(plots)
+  ggplot2::ggsave(filename=file.path, plot=combined, width=297, height=210, units="mm")
+  return(invisible(file.path))
+}
