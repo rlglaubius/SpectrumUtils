@@ -137,6 +137,41 @@ hv.inputs.sti.prevalence = function(hv.raw, direction="wide", first.year=NULL, f
   hv.extract.time.series.by.population(hv.raw, direction, first.year, final.year, "<STIPrev MV2>")
 }
 
+#' Extract ART coverage inputs by population
+#' @inheritParams hv.inputs.art.effect
+#' @return A data frame.
+#' @section Details:
+#'  This returns ART coverage inputs for every population in Goals. However,
+#'  only the coverage levels for males or females who inject drugs, high risk
+#'  heterosexual women, and men who have sex with men can be edited or used in
+#'  Spectrum.
+#' @export
+hv.inputs.art.coverage = function(hv.raw, direction="wide", first.year=NULL, final.year=NULL) {
+  if (is.null(first.year)) {first.year = hv.inputs.first.year(hv.raw)}
+  if (is.null(final.year)) {final.year = hv.inputs.final.year(hv.raw)}
+
+  lab_sex = SpectrumUtils:::strata.labels$sex
+  lab_pop = SpectrumUtils:::strata.labels$hv.pop.ext[2:11] # exclude "All"
+
+  fmt = list(cast=as.numeric, offset=3, nrow=42, ncol=final.year-first.year+1)
+  raw = SpectrumUtils:::extract.hv.tag(hv.raw, "<ARTInputCoverageByRG MV>", fmt)
+  dat = cbind(Sex = rep(lab_sex, each=length(lab_pop)),
+              Population = rep(lab_pop, length(lab_sex)),
+              rbind(data.frame(raw[seq( 2, 20, 2),]), data.frame(raw[seq(23, 42, 2),])))
+  colnames(dat) = c("Sex", "Population", sprintf("%d", first.year:final.year))
+
+  ## Goals reserves storage for ART coverage in all sexes and groups. This includes female MSM inputs
+  ## that are never used. We remove those here.
+  dat = dplyr::filter(dat, !(Sex=="Female" & Population %in% SpectrumUtils:::strata.labels$hv.pop.ext[7:11]))
+
+  if (direction == "long") {
+    dat = reshape2::melt(dat, id.vars=c("Sex", "Population"), variable.name="Year", value.name="Value")
+    dat$Year = as.numeric(as.character(dat$Year))
+  }
+
+  return(dat)
+}
+
 #' Extract data used for model fitting
 #' @inheritParams hv.inputs.first.year
 #' @return A data frame.
